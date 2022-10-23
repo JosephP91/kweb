@@ -1,0 +1,8 @@
+local:
+  server:
+    port: 8000
+  logger:
+    type: "screen"
+    formatter: "%(asctime)s [%(threadName)-22.22s] [%(levelname)-5.5s] [ %(funcName)s - line %(lineno)d ] - %(message)s"
+    max_bytes: 5242880
+    backupCount: 3
