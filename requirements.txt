@@ -2,3 +2,4 @@ asyncio
 tornado
 munch
 pyyaml
+jsonschema

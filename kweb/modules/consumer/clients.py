@@ -1,18 +1,18 @@
 from threading import Lock
 
 
-class ClientSet:
+class Clients:
     def __init__(self):
         self._lock = Lock()
-        self._clients = set()
+        self._clients = dict()
 
     def add(self, client):
         with self._lock:
-            self._clients.add(client)
+            self._clients[client.id] = client
     
     def remove(self, client):
         with self._lock:
-            self._clients.remove(client)
+            del self._clients[client.id]
 
     def __len__(self):
         with self._lock:
