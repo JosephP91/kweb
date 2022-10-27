@@ -45,6 +45,7 @@ class JsonCommandParser(ICommandParser):
 
         except JSONDecodeError:
             raise ParserException("'{}' cannot be parsed as JSON command!".format(command_str))
+        
         except ValidationError:
             raise ParserException("JSON command must be compliant with this schema: '{}'".format(schema))
 
