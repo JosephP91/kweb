@@ -7,11 +7,9 @@ from ..command import CommandQueue, CommandQueueEmptyException
 
 
 class AsyncConsumer:
-    def __init__(self, config: DefaultMunch, logger: Logger, queue: CommandQueue, client_id: str):
-        self._config = config
-        self._logger = logger
-        self._queue = queue
+    def __init__(self, client_id: str, queue: CommandQueue):
         self._client_id = client_id
+        self._queue = queue
         self._should_stop = False
 
     def start(self):
@@ -29,4 +27,3 @@ class AsyncConsumer:
             except CommandQueueEmptyException:
                 pass
 
-        self._logger.info("Consumer thread {} has been stopped".format(self._client_id))
