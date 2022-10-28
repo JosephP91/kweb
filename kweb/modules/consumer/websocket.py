@@ -7,6 +7,7 @@ from munch import DefaultMunch
 from tornado.websocket import WebSocketHandler
 
 from .consumer import AsyncConsumer
+from ..context import *
 from ..command import *
 
 
@@ -22,7 +23,13 @@ class ConsumerWebSocketHandler(WebSocketHandler):
     def open(self):
         self._cmd_queue = CommandQueue()
 
-        self._async_consumer = AsyncConsumer(self.id, self._cmd_queue)
+        context = ConsumerContext()
+        context.logger = self._logger
+        context.config = self._config
+        context.client_id = self.id
+        context.cmd_queue = self._cmd_queue 
+
+        self._async_consumer = AsyncConsumer(context)
         self._async_consumer.start()
         self._logger.info("[{}] - Started async consumer".format(self.id))
 
@@ -33,9 +40,13 @@ class ConsumerWebSocketHandler(WebSocketHandler):
     def on_message(self, message: Union[str, bytes]):
         message = self._parser.cleanup(message)
 
+        context = Context()
+        context.logger = self._logger
+        context.config = self._config
+
         try:
             cmd_input = self._parser.parse(message)
-            cmd_instance = CommandName.get_class(cmd_input.command_name).value(self._config, self._logger)
+            cmd_instance = CommandName.get_class(cmd_input.command_name).value(context)
             self._cmd_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
 
         except Exception as e:
@@ -49,3 +60,4 @@ class ConsumerWebSocketHandler(WebSocketHandler):
         message = str(error)
         self._logger.error("[{}] - {}".format(client_id, message))
         return dumps({"error": message, "client_id": client_id})
+
