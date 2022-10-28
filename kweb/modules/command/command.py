@@ -3,11 +3,11 @@ from logging import Logger
 
 from munch import DefaultMunch
 
-from ..context import Context
+from ..context import ConsumerContext
 
 
 class ICommand(abc.ABC):
-    def __init__(self, context: Context):
+    def __init__(self, context: ConsumerContext):
         self._context = context
 
     @abc.abstractmethod
@@ -15,7 +15,7 @@ class ICommand(abc.ABC):
         raise NotImplementedError()
 
     @property
-    def context(self) -> Context:
+    def context(self) -> ConsumerContext:
         return self._context
 
 

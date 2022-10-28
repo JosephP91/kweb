@@ -14,50 +14,52 @@ from ..command import *
 class ConsumerWebSocketHandler(WebSocketHandler):
     def initialize(self, config: DefaultMunch, logger: Logger):
         self._id = uuid4()
-        self._config = config
-        self._logger = logger
         self._parser = CommandParserFactory.get_parser(config)
         self._async_consumer = None
-        self._cmd_queue = None
+
+        self._context = ConsumerContext()
+        self._context.client_id = self.id
+        self._context.logger = logger
+        self._context.config = config
+        self._context.cmd_queue = CommandQueue()
 
     def open(self):
-        self._cmd_queue = CommandQueue()
-
-        context = ConsumerContext()
-        context.logger = self._logger
-        context.config = self._config
-        context.client_id = self.id
-        context.cmd_queue = self._cmd_queue 
-
-        self._async_consumer = AsyncConsumer(context)
+        self._async_consumer = AsyncConsumer(self.context)
         self._async_consumer.start()
-        self._logger.info("[{}] - Started async consumer".format(self.id))
+        self.logger.info("[{}] - Started async consumer".format(self.id))
 
     def on_close(self):
         self._async_consumer.stop()
-        self._logger.info("[{}] - Consumer has been stopped".format(self.id))
+        self.logger.info("[{}] - Consumer has been stopped".format(self.id))
 
     def on_message(self, message: Union[str, bytes]):
         message = self._parser.cleanup(message)
-
-        context = Context()
-        context.logger = self._logger
-        context.config = self._config
-
         try:
             cmd_input = self._parser.parse(message)
-            cmd_instance = CommandName.get_class(cmd_input.command_name).value(context)
-            self._cmd_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
+            cmd_instance = CommandName.get_class(cmd_input.command_name).value(self.context)
+            self.context.cmd_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
 
         except Exception as e:
-            self.write_message(self._make_error(e, self.id))
+            self.write_message(self._make_error(e))
 
     @property
-    def id(self):
+    def context(self) -> ConsumerContext:
+        return self._context
+
+    @property
+    def config(self) -> DefaultMunch:
+        return self.context.config
+
+    @property
+    def logger(self) -> Logger:
+        return self.context.logger
+
+    @property
+    def id(self) -> str:
         return str(self._id)
 
-    def _make_error(self, error, client_id):
+    def _make_error(self, error):
         message = str(error)
-        self._logger.error("[{}] - {}".format(client_id, message))
-        return dumps({"error": message, "client_id": client_id})
+        self.logger.error("[{}] - {}".format(self.id, message))
+        return dumps({"error": message, "client_id": self.id})
 
