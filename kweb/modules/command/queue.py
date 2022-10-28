@@ -27,13 +27,13 @@ class CommandQueue:
         try:
             self._queue.put(command, block, timeout)
         except Full:
-            raise CommandQueueFullException("Cannot accept more commands right now!")
+            raise CommandQueueFullException()
 
     def pop(self, block=False, timeout: int = None) -> QueuedCommand:
         try:
             return self._queue.get(block, timeout)
         except Empty:
-            raise CommandQueueEmptyException("No more command to process!")
+            raise CommandQueueEmptyException()
 
     def __len__(self) -> int:
         return self._queue.qsize()

@@ -13,8 +13,10 @@ class CommandExecutionException(Exception):
 
 
 class CommandQueueFullException(Exception):
-    pass
+    def __init__(self):
+        super().__init__("Cannot accept more commands right now!")
 
 
 class CommandQueueEmptyException(Exception):
-    pass
+    def __init__(self):
+        super().__init__("No more command to process!")

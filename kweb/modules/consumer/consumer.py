@@ -21,7 +21,6 @@ class AsyncConsumer:
         self._should_stop = True
 
     def _callback(self):
-        self._logger.info("Started thread for client {}".format(self._client_id))
         while not self._should_stop:
             try:
                 queued_command = self._queue.pop(block=True, timeout=1)

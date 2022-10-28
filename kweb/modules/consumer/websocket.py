@@ -6,32 +6,30 @@ from uuid import uuid4
 from munch import DefaultMunch
 from tornado.websocket import WebSocketHandler
 
-from .clients import Clients
 from .consumer import AsyncConsumer
 from ..command import *
 
 
 class ConsumerWebSocketHandler(WebSocketHandler):
-	_clients = Clients()
-
 	def initialize(self, config: DefaultMunch, logger: Logger):
 		self._id = uuid4()
 		self._config = config
 		self._logger = logger
 		self._parser = CommandParserFactory.get_parser(config)
+		self._async_consumer = None
+		self._cmd_queue = None
 
 	def open(self):
 		self._logger.info("[{}] - New connection received!".format(self.id))
 
-		cmd_queue = CommandQueue()
+		self._cmd_queue = CommandQueue()
 
-		consumer = AsyncConsumer(self._config, self._logger, cmd_queue, self.id)
-		consumer.start()
-
-		ConsumerWebSocketHandler._clients.add(self, cmd_queue, consumer)
+		self._async_consumer = AsyncConsumer(self._config, self._logger, self._cmd_queue, self.id)
+		self._async_consumer.start()
+		self._logger.info("Started thread for client {}".format(self.id))
 
 	def on_close(self):
-		ConsumerWebSocketHandler._clients.remove(self)
+		self._async_consumer.stop()
 		self._logger.info("[{}] - Connection closed!".format(self.id))
 
 	def on_message(self, message: Union[str, bytes]):
@@ -40,9 +38,7 @@ class ConsumerWebSocketHandler(WebSocketHandler):
 		try:
 			cmd_input = self._parser.parse(message)
 			cmd_instance = CommandName.get_class(cmd_input.command_name).value(self._config, self._logger)
-
-			client_queue = ConsumerWebSocketHandler._clients.get(self)["queue"]
-			client_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
+			self._cmd_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
 
 		except CommandQueueFullException as e:
 			self.write_message(self._make_error(str(e), self.id))
