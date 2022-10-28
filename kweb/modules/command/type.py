@@ -1,4 +1,3 @@
-import abc
 from enum import Enum
 
 from .command import *
@@ -19,4 +18,3 @@ class CommandName(Enum):
             return cls[command.upper()]
         except KeyError:
             raise UnsupportedCommandException(command)
-

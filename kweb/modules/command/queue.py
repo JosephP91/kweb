@@ -1,6 +1,7 @@
-from queue import Queue
+from queue import Queue, Full, Empty
 
 from .command import ICommand
+from .exception import CommandQueueFullException, CommandQueueEmptyException
 
 
 class QueuedCommand:
@@ -22,12 +23,17 @@ class CommandQueue:
         self._queue = Queue(maxsize=maxsize)
         self._maxsize = maxsize
 
-    def put(self, command: QueuedCommand, block=False, timeout:int=None):
-        self._queue.put(command, block, timeout)
+    def put(self, command: QueuedCommand, block=False, timeout: int = None):
+        try:
+            self._queue.put(command, block, timeout)
+        except Full:
+            raise CommandQueueFullException("Cannot accept more commands right now!")
 
-    def pop(self, block=False, timeout:int=None) -> ICommand:
-        return self._queue.get(block, timeout)
+    def pop(self, block=False, timeout: int = None) -> QueuedCommand:
+        try:
+            return self._queue.get(block, timeout)
+        except Empty:
+            raise CommandQueueEmptyException("No more command to process!")
 
     def __len__(self) -> int:
         return self._queue.qsize()
-

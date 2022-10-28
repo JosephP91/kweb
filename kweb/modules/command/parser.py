@@ -1,10 +1,11 @@
 import abc
 from json import loads, JSONDecodeError
-from munch import DefaultMunch
-from jsonschema import validate, ValidationError
 
-from .type import ParserType
+from jsonschema import validate, ValidationError
+from munch import DefaultMunch
+
 from .exception import ParserException
+from .type import ParserType
 
 
 class ParsedCommand:
@@ -33,11 +34,11 @@ class ICommandParser(abc.ABC):
 class JsonCommandParser(ICommandParser):
     def parse(self, command_str: str) -> ParsedCommand:
         schema = {
-            "command_name": "string", 
+            "command_name": "string",
             "parameters": "object",
             "required": ["command_name", "parameters"]
         }
-        
+
         try:
             json_command = loads(command_str)
             validate(instance=json_command, schema=schema)
@@ -45,7 +46,7 @@ class JsonCommandParser(ICommandParser):
 
         except JSONDecodeError:
             raise ParserException("'{}' cannot be parsed as JSON command!".format(command_str))
-        
+
         except ValidationError:
             raise ParserException("JSON command must be compliant with this schema: '{}'".format(schema))
 
@@ -53,12 +54,11 @@ class JsonCommandParser(ICommandParser):
 class CommandParserFactory:
     @staticmethod
     def get_parser(config: DefaultMunch) -> ICommandParser:
+        selected_parser = config.command.parser.type
         try:
-            selected_parser = config.command.parser.type
             parser_name = ParserType[selected_parser]
         except KeyError:
             raise ValueError("Unsupported parser type {}".format(selected_parser))
 
         if parser_name == ParserType.JSON:
             return JsonCommandParser()
-

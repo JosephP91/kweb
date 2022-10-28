@@ -1,19 +1,20 @@
-from threading import Lock, Thread
+from threading import Lock
 
+from .consumer import AsyncConsumer
 from ..command import CommandQueue
 
 
 class Clients:
     def __init__(self):
         self._lock = Lock()
-        self._clients = {} 
+        self._clients = {}
 
-    def add(self, client, queue: CommandQueue, thread: Thread):
+    def add(self, client, queue: CommandQueue, consumer: AsyncConsumer):
         with self._lock:
             self._clients[client.id] = {
                 "handler": client,
                 "queue": queue,
-                "thread": thread
+                "consumer": consumer
             }
 
     def get(self, client):
@@ -22,7 +23,7 @@ class Clients:
 
     def remove(self, client):
         with self._lock:
-            self._clients[client.id]["thread"].stop()
+            self._clients[client.id]["consumer"].stop()
             del self._clients[client.id]
 
     def exists(self, client_id: str) -> bool:
@@ -32,4 +33,3 @@ class Clients:
     def __len__(self):
         with self._lock:
             return len(self._clients)
-

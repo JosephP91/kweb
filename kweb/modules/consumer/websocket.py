@@ -1,79 +1,62 @@
-import sys
-import logging
-from munch import DefaultMunch
-from logging import Logger
 from json import dumps
+from logging import Logger
+from typing import Union
 from uuid import uuid4
-from queue import Full
 
+from munch import DefaultMunch
 from tornado.websocket import WebSocketHandler
 
 from .clients import Clients
-from .thread import ConsumerThread
-
+from .consumer import AsyncConsumer
 from ..command import *
-from ..logger import LoggerFactory, LoggerType
 
 
 class ConsumerWebSocketHandler(WebSocketHandler):
-    _clients = Clients()
+	_clients = Clients()
 
-    def initialize(self, config: DefaultMunch, logger: Logger, parser: ICommandParser):
-        self._id = uuid4()
-        self._config = config
-        self._logger = logger
-        self._parser = parser
+	def initialize(self, config: DefaultMunch, logger: Logger):
+		self._id = uuid4()
+		self._config = config
+		self._logger = logger
+		self._parser = CommandParserFactory.get_parser(config)
 
-    def open(self):
-        self._log_info("New connection received.", self.id)
-        
-        queue = CommandQueue()
-        
-        thread = ConsumerThread(self._config, self._logger, queue, self.id)
-        thread.start()
+	def open(self):
+		self._logger.info("[{}] - New connection received!".format(self.id))
 
-        ConsumerWebSocketHandler._clients.add(self, queue, thread)
+		cmd_queue = CommandQueue()
 
-    def on_close(self):
-        ConsumerWebSocketHandler._clients.remove(self)
-        self._log_info("Closed connection.", self.id)
+		consumer = AsyncConsumer(self._config, self._logger, cmd_queue, self.id)
+		consumer.start()
 
-    def on_message(self, message):
-        message = self._parser.cleanup(message)
+		ConsumerWebSocketHandler._clients.add(self, cmd_queue, consumer)
 
-        try:
-            cmd_input = self._parser.parse(message)
-            cmd_instance = CommandName.get_class(cmd_input.command_name).value(self._config, self._logger)
+	def on_close(self):
+		ConsumerWebSocketHandler._clients.remove(self)
+		self._logger.info("[{}] - Connection closed!".format(self.id))
 
-            client_queue = ConsumerWebSocketHandler._clients.get(self)["queue"]
-            client_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
+	def on_message(self, message: Union[str, bytes]):
+		message = self._parser.cleanup(message)
 
-        except Full:
-            self._log_error("Cannot accept more messages from {}".format(self.id))
-            self.write_message(self._make_error("Cannot accept more commands right now!", self.id))
+		try:
+			cmd_input = self._parser.parse(message)
+			cmd_instance = CommandName.get_class(cmd_input.command_name).value(self._config, self._logger)
 
-        except KeyError:
-            error_message = "Unsupported command: '{}'".format(cmd_input.command_name)
-            self.write_message(self._make_error(error_message, self.id))
+			client_queue = ConsumerWebSocketHandler._clients.get(self)["queue"]
+			client_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
 
-        except ParserException as exception:
-            self.write_message(self._make_error(str(exception), self.id))
+		except CommandQueueFullException as e:
+			self.write_message(self._make_error(str(e), self.id))
 
-    @property
-    def id(self):
-        return self._id
+		except UnsupportedCommandException as e:
+			self.write_message(self._make_error(str(e), self.id))
 
-    def _log_info(self, message: str, client_id: str):
-        self._logger.info("[{}] - {}".format(client_id, message))
+		except ParserException as e:
+			self.write_message(self._make_error(str(e), self.id))
 
-    def _log_error(self, message: str, client_id: str):
-        self._logger.error("[{}] - {}".format(client_id, message))
+	@property
+	def id(self):
+		return str(self._id)
 
-    def _make_error(self, message: str, client_id: str):
-        self._log_error(message, client_id)
-        return dumps({"error": message, "client_id": str(client_id)})
-
-    def _make_message(self, message: str, client_id: str):
-        return dumps({"message": message, "client_id": str(client_id)})
-
-
+	def _make_error(self, message: str, client_id: str):
+		self._logger.error("[{}] - {}".format(client_id, message))
+		return dumps({"error": message, "client_id": client_id})

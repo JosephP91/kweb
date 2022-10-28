@@ -1,15 +1,14 @@
 local:
-  server:
-    port: 8000
-    autoreload: True
-    websocket_ping_interval_sec: 10
-    websocket_ping_timeout_sec: 30
-  logger:
-    type: "screen"
-    formatter: "%(asctime)s [%(threadName)-10.10s] [%(levelname)-5.5s] - %(message)s"
-    max_bytes: 5242880
-    backupCount: 3
-  command:
-    parser:
-      type: "JSON"
-
+    server:
+        port: 8000
+        autoreload: True
+        websocket_ping_interval_sec: 10
+        websocket_ping_timeout_sec: 30
+    logger:
+        type: "screen"
+        formatter: "%(asctime)s [%(threadName)-10.10s] [%(levelname)-5.5s] - %(message)s"
+        max_bytes: 5242880
+        backupCount: 3
+    command:
+        parser:
+            type: "JSON"

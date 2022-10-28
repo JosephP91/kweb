@@ -1,9 +1,9 @@
 import abc
 import logging
 import sys
+from logging import Logger
 
 from munch import DefaultMunch
-from logging import Logger
 
 from .type import LoggerType
 
@@ -36,6 +36,5 @@ class LoggerFactory:
             logger_factory = ScreenLoggerFactory()
         else:
             raise RuntimeError("Logger type {} is not supported!".format(logger_type))
-        
-        return logger_factory.get_logger(config)
 
+        return logger_factory.get_logger(config)

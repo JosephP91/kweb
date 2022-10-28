@@ -1,7 +1,7 @@
 import abc
+from logging import Logger
 
 from munch import DefaultMunch
-from logging import Logger
 
 
 class ICommand(abc.ABC):
