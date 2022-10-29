@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from tornado.websocket import WebSocketHandler
 
 from .consumer import AsyncConsumer
+from .command import CommandFactory
 from ..context import ConsumerContext
 from ..command import *
 
@@ -38,8 +39,8 @@ class ConsumerWebSocketHandler(WebSocketHandler):
 		self.logger.info("[{}] - Consumer has been stopped".format(self.id))
 
 	def on_message(self, message: Union[str, bytes]):
-		message = self._parser.cleanup(message)
 		try:
+			message = self._parser.cleanup(message)
 			cmd_input = self._parser.parse(message)
 
 			cmd_instance = CommandFactory.get_instance(cmd_input.command_name, self.context)

@@ -5,10 +5,10 @@ from tornado.web import Application
 
 from modules.config import ConfigReader
 from modules.consumer import ConsumerWebSocketHandler
-from modules.logger import LoggerFactory, LoggerType
+from modules.logger import LoggerFactory
 
 config = ConfigReader.read("local")
-logger = LoggerFactory.get_logger(config, LoggerType.SCREEN)
+logger = LoggerFactory.get_logger(config)
 
 define("port", default=config.server.port, help="Run on the given port", type=int)
 

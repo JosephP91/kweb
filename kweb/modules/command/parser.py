@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import abc
+from enum import Enum
 from json import loads, JSONDecodeError
 from typing import TYPE_CHECKING
 
 from jsonschema import validate, ValidationError
 
 from .exception import ParserException
-from .type import ParserType
 
 if TYPE_CHECKING:
 	from munch import DefaultMunch
@@ -54,6 +54,10 @@ class JsonCommandParser(ICommandParser):
 
 		except ValidationError:
 			raise ParserException("JSON command must be compliant with this schema: '{}'".format(schema))
+
+
+class ParserType(Enum):
+	JSON = "JSON"
 
 
 class CommandParserFactory:

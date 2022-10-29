@@ -1,11 +1,10 @@
 import abc
 import logging
 import sys
+from enum import Enum
 from logging import Logger
 
 from munch import DefaultMunch
-
-from .type import LoggerType
 
 
 class AbstractLoggerFactory(abc.ABC):
@@ -28,12 +27,14 @@ class ScreenLoggerFactory(AbstractLoggerFactory):
 		return logger
 
 
+class Loggers(Enum):
+	SCREEN = ScreenLoggerFactory
+
+
 class LoggerFactory:
 	@staticmethod
-	def get_logger(config: DefaultMunch, logger_type: LoggerType) -> Logger:
-		if logger_type == LoggerType.SCREEN:
-			logger_factory = ScreenLoggerFactory()
-		else:
-			raise RuntimeError("Logger type {} is not supported!".format(logger_type))
-
-		return logger_factory.get_logger(config)
+	def get_logger(config: DefaultMunch) -> Logger:
+		try:
+			return Loggers[config.logger.type.upper()].value().get_logger(config)
+		except KeyError:
+			raise RuntimeError("Logger type {} is not supported".format(config.logger.type))
