@@ -4,9 +4,8 @@ from .command import *
 
 
 class ParserType(Enum):
-    JSON = "JSON"
+	JSON = "JSON"
 
 
 class CommandName(Enum):
-    CREATE_CONSUMER = CreateConsumerCommand
-
+	CREATE_CONSUMER = CreateConsumerCommand
