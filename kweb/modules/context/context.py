@@ -1,5 +1,13 @@
-from logging import Logger
-from munch import DefaultMunch
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from logging import Logger
+    from munch import DefaultMunch
+    from kafka import KafkaConsumer
+
+    from ..command import CommandQueue, OutputQueue
 
 
 class Context:
@@ -29,20 +37,34 @@ class ConsumerContext(Context):
         super().__init__()
         self._client_id = None
         self._cmd_queue = None
+        self._out_queue = None
+        self._consumer = None
 
     @property
     def client_id(self) -> str:
         return self._client_id
 
     @property
-    def cmd_queue(self):
+    def cmd_queue(self) -> CommandQueue:
         return self._cmd_queue
+
+    @property
+    def out_queue(self) -> OutputQueue:
+        return self._out_queue
+
+    @property
+    def consumer(self) -> KafkaConsumer:
+        return self._consumer
 
     @client_id.setter
     def client_id(self, client_id):
         self._client_id = client_id
 
     @cmd_queue.setter
-    def cmd_queue(self, cmd_queue):
+    def cmd_queue(self, cmd_queue: CommandQueue):
         self._cmd_queue = cmd_queue
+
+    @out_queue.setter
+    def out_queue(self, out_queue: OutputQueue):
+        self._out_queue = out_queue
 

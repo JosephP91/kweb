@@ -1,7 +1,11 @@
-from queue import Queue, Full, Empty
+from __future__ import annotations
 
-from .command import ICommand
+from queue import Queue, Full, Empty
+from typing import TYPE_CHECKING
 from .exception import CommandQueueFullException, CommandQueueEmptyException
+
+if TYPE_CHECKING:
+    from .command import ICommand
 
 
 class QueuedCommand:
@@ -21,7 +25,6 @@ class QueuedCommand:
 class CommandQueue:
     def __init__(self, maxsize=5):
         self._queue = Queue(maxsize=maxsize)
-        self._maxsize = maxsize
 
     def put(self, command: QueuedCommand, block=False, timeout: int = None):
         try:
@@ -37,3 +40,18 @@ class CommandQueue:
 
     def __len__(self) -> int:
         return self._queue.qsize()
+
+
+class OutputQueue:
+    def __init__(self, maxsize=1):
+        self._queue = Queue(maxsize=maxsize)
+
+    def put(self, output: dict):
+        self._queue.put(output, block=True)
+
+    def pop(self) -> dict:
+        return self._queue.get(block=True)
+
+    def __len__(self) -> int:
+        return self._queue.qsize()
+

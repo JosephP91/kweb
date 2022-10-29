@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 from json import dumps
 from logging import Logger
-from typing import Union
+from typing import Union, TYPE_CHECKING
 from uuid import uuid4
 
-from munch import DefaultMunch
+if TYPE_CHECKING:
+    from logging import Logger
+    from munch import DefaultMunch
+
 from tornado.websocket import WebSocketHandler
 
 from .consumer import AsyncConsumer
-from ..context import *
+from ..context import ConsumerContext
 from ..command import *
 
 
@@ -22,6 +27,7 @@ class ConsumerWebSocketHandler(WebSocketHandler):
         self._context.logger = logger
         self._context.config = config
         self._context.cmd_queue = CommandQueue()
+        self._context.out_queue = OutputQueue()
 
     def open(self):
         self._async_consumer = AsyncConsumer(self.context)
@@ -36,8 +42,12 @@ class ConsumerWebSocketHandler(WebSocketHandler):
         message = self._parser.cleanup(message)
         try:
             cmd_input = self._parser.parse(message)
+
             cmd_instance = CommandName.get_class(cmd_input.command_name).value(self.context)
             self.context.cmd_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
+            cmd_output = self.context.out_queue.pop()
+
+            self.write_message(cmd_output)
 
         except Exception as e:
             self.write_message(self._make_error(e))

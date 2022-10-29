@@ -1,10 +1,14 @@
-from logging import Logger
+from __future__ import annotations
 
+from logging import Logger
 from munch import DefaultMunch
+from typing import TYPE_CHECKING
 from tornado.ioloop import IOLoop
 
 from ..command import CommandQueue, CommandQueueEmptyException
-from ..context import ConsumerContext
+
+if TYPE_CHECKING:
+    from ..context import ConsumerContext
 
 
 class AsyncConsumer:
@@ -22,7 +26,8 @@ class AsyncConsumer:
         while not self._should_stop:
             try:
                 queued_command = self._context.cmd_queue.pop(block=True, timeout=1)
-                queued_command.command.execute(queued_command.parameters)
+                cmd_output = queued_command.command.execute(queued_command.parameters)
+                self._context.out_queue.put(cmd_output)
 
             except CommandQueueEmptyException:
                 self._context.logger.info("Queue is empty!")

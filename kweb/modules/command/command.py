@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import abc
 from logging import Logger
-
 from munch import DefaultMunch
+from typing import TYPE_CHECKING
 
-from ..context import ConsumerContext
+if TYPE_CHECKING:
+    from ..context import ConsumerContext
 
 
 class ICommand(abc.ABC):
