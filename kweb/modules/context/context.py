@@ -12,8 +12,13 @@ if TYPE_CHECKING:
 
 class Context:
 	def __init__(self):
+		self._client_id = None
 		self._logger = None
 		self._config = None
+
+	@property
+	def client_id(self) -> str:
+		return self._client_id
 
 	@property
 	def logger(self) -> Logger:
@@ -22,6 +27,10 @@ class Context:
 	@property
 	def config(self) -> DefaultMunch:
 		return self._config
+
+	@client_id.setter
+	def client_id(self, client_id):
+		self._client_id = client_id
 
 	@logger.setter
 	def logger(self, logger: Logger):
@@ -35,14 +44,9 @@ class Context:
 class ConsumerContext(Context):
 	def __init__(self):
 		super().__init__()
-		self._client_id = None
 		self._cmd_queue = None
 		self._out_queue = None
 		self._consumer = None
-
-	@property
-	def client_id(self) -> str:
-		return self._client_id
 
 	@property
 	def cmd_queue(self) -> CommandQueue:
@@ -55,10 +59,6 @@ class ConsumerContext(Context):
 	@property
 	def consumer(self) -> KafkaConsumer:
 		return self._consumer
-
-	@client_id.setter
-	def client_id(self, client_id):
-		self._client_id = client_id
 
 	@cmd_queue.setter
 	def cmd_queue(self, cmd_queue: CommandQueue):

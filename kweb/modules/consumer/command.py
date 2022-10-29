@@ -24,7 +24,7 @@ class ConsumerCommand(AbstractCommand, abc.ABC):
 	def context(self) -> ConsumerContext:
 		return self._context
 
-	def _get_schema(self):
+	def _get_schema(self) -> dict:
 		cur_abs_path = os.path.abspath(os.path.dirname(__file__))
 		full_file_path = os.path.join(cur_abs_path, "../../schema/consumer.json")
 		with open(full_file_path) as json_file_stream:

@@ -40,12 +40,13 @@ class AbstractCommand(abc.ABC):
 		raise NotImplementedError()
 
 	@abc.abstractmethod
-	def _get_schema(self):
+	def _get_schema(self) -> dict:
 		raise NotImplementedError()
 
 	def _make_success(self, message: str, payload: dict = None) -> dict:
 		return {
 			"command_name": self.cmd_name,
+			"client_id": self.context.client_id,
 			"message": message,
 			"payload": payload if payload is not None else {}
 		}
@@ -53,6 +54,7 @@ class AbstractCommand(abc.ABC):
 	def _make_error(self, message: str, reason: Exception):
 		return {
 			"command_name": self.cmd_name,
+			"client_id": self.context.client_id,
 			"message": message,
 			"reason": str(reason)
 		}
