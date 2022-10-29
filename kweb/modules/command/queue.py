@@ -6,16 +6,16 @@ from typing import TYPE_CHECKING
 from .exception import CommandQueueFullException, CommandQueueEmptyException
 
 if TYPE_CHECKING:
-	from .command import ICommand
+	from .command import AbstractCommand
 
 
 class QueuedCommand:
-	def __init__(self, command: ICommand, parameters: dict):
+	def __init__(self, command: AbstractCommand, parameters: dict):
 		self._command = command
 		self._parameters = parameters
 
 	@property
-	def command(self) -> ICommand:
+	def command(self) -> AbstractCommand:
 		return self._command
 
 	@property

@@ -30,3 +30,6 @@ class AsyncConsumer:
 
 			except CommandQueueEmptyException:
 				pass
+
+		if self._context.consumer is not None:
+			self._context.consumer.close(autocommit=False)

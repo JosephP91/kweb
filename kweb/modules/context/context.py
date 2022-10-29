@@ -67,3 +67,7 @@ class ConsumerContext(Context):
 	@out_queue.setter
 	def out_queue(self, out_queue: OutputQueue):
 		self._out_queue = out_queue
+
+	@consumer.setter
+	def consumer(self, consumer: KafkaConsumer):
+		self._consumer = consumer

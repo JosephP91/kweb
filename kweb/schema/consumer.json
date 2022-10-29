@@ -1,0 +1,12 @@
+{
+	"create_consumer": {
+		"bootstrap_servers": "array",
+		"group_id": "string",
+		"fetch_max_wait_ms": "integer",
+		"fetch_max_bytes": "integer",
+		"auto_offset_reset": "boolean",
+		"enable_auto_commit": "boolean",
+
+		"required": ["bootstrap_servers"]
+	}
+}

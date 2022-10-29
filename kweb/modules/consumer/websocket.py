@@ -32,11 +32,11 @@ class ConsumerWebSocketHandler(WebSocketHandler):
 	def open(self):
 		self._async_consumer = AsyncConsumer(self.context)
 		self._async_consumer.start()
-		self.logger.info("[{}] - Started async consumer".format(self.id))
+		self.logger.info("[{}] - Started async consumer.".format(self.id))
 
 	def on_close(self):
 		self._async_consumer.stop()
-		self.logger.info("[{}] - Consumer has been stopped".format(self.id))
+		self.logger.info("[{}] - Consumer has been stopped.".format(self.id))
 
 	def on_message(self, message: Union[str, bytes]):
 		try:
