@@ -24,4 +24,3 @@ class CreateConsumerCommand(ICommand):
 	def execute(self, parameters: dict) -> dict:
 		self.context.logger.info("Executing create consumer command")
 		return dict()
-
