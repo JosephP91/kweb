@@ -67,3 +67,4 @@ class CommandParserFactory:
 
         if parser_name == ParserType.JSON:
             return JsonCommandParser()
+
