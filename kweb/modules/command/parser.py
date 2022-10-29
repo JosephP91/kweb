@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import abc
 from json import loads, JSONDecodeError
+from typing import TYPE_CHECKING
 
 from jsonschema import validate, ValidationError
-from munch import DefaultMunch
 
 from .exception import ParserException
 from .type import ParserType
+
+if TYPE_CHECKING:
+    from munch import DefaultMunch
 
 
 class ParsedCommand:
@@ -53,7 +58,7 @@ class JsonCommandParser(ICommandParser):
 
 class CommandParserFactory:
     @staticmethod
-    def get_parser(config: DefaultMunch) -> ICommandParser:
+    def get_instance(config: DefaultMunch) -> ICommandParser:
         selected_parser = config.command.parser.type
         try:
             parser_name = ParserType[selected_parser]

@@ -19,7 +19,7 @@ from ..command import *
 class ConsumerWebSocketHandler(WebSocketHandler):
     def initialize(self, config: DefaultMunch, logger: Logger):
         self._id = uuid4()
-        self._parser = CommandParserFactory.get_parser(config)
+        self._parser = CommandParserFactory.get_instance(config)
         self._async_consumer = None
 
         self._context = ConsumerContext()
@@ -43,7 +43,7 @@ class ConsumerWebSocketHandler(WebSocketHandler):
         try:
             cmd_input = self._parser.parse(message)
 
-            cmd_instance = CommandName.get_class(cmd_input.command_name).value(self.context)
+            cmd_instance = CommandFactory.get_instance(cmd_input.command_name, self.context)
             self.context.cmd_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
             cmd_output = self.context.out_queue.pop()
 

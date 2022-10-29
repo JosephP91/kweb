@@ -27,9 +27,3 @@ class CreateConsumerCommand(ICommand):
         self.context.logger.info("Executing create consumer command")
         return dict()
 
-
-class ListConsumersCommand(ICommand):
-    def execute(self, parameters: dict) -> dict:
-        self.context.logger.info("Executing list consumer command")
-        return dict()
-

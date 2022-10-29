@@ -30,6 +30,5 @@ class AsyncConsumer:
                 self._context.out_queue.put(cmd_output)
 
             except CommandQueueEmptyException:
-                self._context.logger.info("Queue is empty!")
                 pass
 
