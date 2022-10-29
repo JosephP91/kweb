@@ -35,6 +35,9 @@ class AbstractCommand(abc.ABC):
 		except CommandExecutionException as e:
 			return self._make_error("Command execution failed!", e)
 
+		except Exception as e:
+			return self._make_error("Generic error occurred!", e)
+
 	@abc.abstractmethod
 	def _execute_command(self, parameter: dict) -> dict:
 		raise NotImplementedError()

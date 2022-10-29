@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import base64
 import json
 import os
 from enum import Enum
@@ -42,13 +43,32 @@ class CreateConsumerCommand(ConsumerCommand):
 		if self.context.consumer is not None:
 			raise CommandExecutionException("Consumer has already been created!")
 
-		self.context.consumer = KafkaConsumer(**parameters, api_version=(2, 3, 0))
+		self.context.consumer = KafkaConsumer(
+			**parameters,
+			api_version=(2, 3, 0),
+			value_deserializer=lambda v: base64.b64encode(v).decode("ascii")
+		)
 		self.context.logger.info("Consumer successfully created: {}".format(parameters))
 		return self._make_success("Consumer successfully created!")
 
 
+class SubscribeCommand(ConsumerCommand):
+	def __init__(self, context: ConsumerContext):
+		super().__init__("subscribe", context)
+
+	def _execute_command(self, parameters: dict) -> dict:
+		if self.context.consumer is None:
+			raise CommandExecutionException("No consumer created! Please create one!")
+
+		consumer_topics = parameters["topics"]
+		self.context.consumer.subscribe(topics=consumer_topics)
+		self.context.logger.info("Subscribed to topics {}".format(consumer_topics))
+		return self._make_success("Subscription started!")
+
+
 class CommandName(Enum):
 	CREATE_CONSUMER = CreateConsumerCommand
+	SUBSCRIBE = SubscribeCommand
 
 
 class CommandFactory:

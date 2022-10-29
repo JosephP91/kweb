@@ -8,5 +8,14 @@
 		"enable_auto_commit": "boolean",
 
 		"required": ["bootstrap_servers"]
+	},
+
+	"subscribe": {
+		"topics": "array",
+		"items": {
+			"type": "string"
+		},
+
+		"required": ["topics"]
 	}
 }

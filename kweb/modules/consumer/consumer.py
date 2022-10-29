@@ -29,7 +29,13 @@ class AsyncConsumer:
 				self._context.out_queue.put(cmd_output)
 
 			except CommandQueueEmptyException:
-				pass
+				if self._context.consumer is not None:
+					try:
+						cmd_output = self._context.consumer.poll()
+						if len(cmd_output) > 0:
+							IOLoop.spawn_callback(self._context.io_loop, self._context.on_consumer_data, cmd_output)
+					except Exception as e:
+						IOLoop.spawn_callback(self._context.io_loop, self._context.on_consumer_error, e)
 
 		if self._context.consumer is not None:
 			self._context.consumer.close(autocommit=False)

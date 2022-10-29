@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
+
+from tornado.ioloop import IOLoop
 
 if TYPE_CHECKING:
 	from logging import Logger
@@ -29,7 +31,7 @@ class Context:
 		return self._config
 
 	@client_id.setter
-	def client_id(self, client_id):
+	def client_id(self, client_id: str):
 		self._client_id = client_id
 
 	@logger.setter
@@ -47,6 +49,9 @@ class ConsumerContext(Context):
 		self._cmd_queue = None
 		self._out_queue = None
 		self._consumer = None
+		self._io_loop = None
+		self._on_data_available = None
+		self.on_consumer_error = None
 
 	@property
 	def cmd_queue(self) -> CommandQueue:
@@ -60,6 +65,18 @@ class ConsumerContext(Context):
 	def consumer(self) -> KafkaConsumer:
 		return self._consumer
 
+	@property
+	def io_loop(self) -> IOLoop:
+		return self._io_loop
+
+	@property
+	def on_consumer_data(self) -> Callable:
+		return self._on_data_available
+
+	@property
+	def on_consumer_error(self) -> Callable:
+		return self.on_consumer_error
+
 	@cmd_queue.setter
 	def cmd_queue(self, cmd_queue: CommandQueue):
 		self._cmd_queue = cmd_queue
@@ -71,3 +88,15 @@ class ConsumerContext(Context):
 	@consumer.setter
 	def consumer(self, consumer: KafkaConsumer):
 		self._consumer = consumer
+
+	@io_loop.setter
+	def io_loop(self, io_loop: IOLoop):
+		self._io_loop = io_loop
+
+	@on_consumer_data.setter
+	def on_consumer_data(self, on_consumer_data: Callable):
+		self._on_data_available = on_consumer_data
+
+	@on_consumer_error.setter
+	def on_consumer_error(self, on_consumer_error: Callable):
+		self._on_consumer_error = on_consumer_error
