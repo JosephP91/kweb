@@ -17,5 +17,41 @@
 		},
 
 		"required": ["topics"]
+	},
+
+	"seek_to_end": {
+		"topic-partitions": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"topic": {
+						"type": "string"
+					},
+					"partition": {
+						"type": "integer"
+					}
+				},
+				"required": ["topic", "partition"]
+			}
+		}
+	},
+
+	"seek_to_beginning": {
+		"topic-partitions": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"topic": {
+						"type": "string"
+					},
+					"partition": {
+						"type": "integer"
+					}
+				},
+				"required": ["topic", "partition"]
+			}
+		}
 	}
 }
