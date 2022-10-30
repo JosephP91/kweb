@@ -25,7 +25,7 @@ class AsyncConsumer:
 
     @property
     def ctx(self):
-        self._ctx = ctx
+        return self._ctx
 
     def start(self):
         IOLoop.current().run_in_executor(None, self._callback)

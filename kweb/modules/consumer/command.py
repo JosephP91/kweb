@@ -10,69 +10,125 @@ from typing import TYPE_CHECKING
 from kafka import KafkaConsumer
 
 if TYPE_CHECKING:
-	from ..context import ConsumerContext
+    from ..context import ConsumerContext
 
-from ..command import AbstractCommand, UnsupportedCommandException, CommandExecutionException
+from ..command import AbstractCommand
+from ..command.exception import *
 from .exception import NoSuchSchemaException
 
 
 class ConsumerCommand(AbstractCommand, abc.ABC):
-	def __init__(self, cmd_name: str, context: ConsumerContext):
-		super().__init__(cmd_name)
-		self._context = context
+    def __init__(self, cmd_name: str, context: ConsumerContext):
+        super().__init__(cmd_name)
+        self._context = context
 
-	@property
-	def context(self) -> ConsumerContext:
-		return self._context
+    @property
+    def context(self) -> ConsumerContext:
+        return self._context
 
-	def _get_schema(self) -> dict:
-		cur_abs_path = os.path.abspath(os.path.dirname(__file__))
-		full_file_path = os.path.join(cur_abs_path, "../../schema/consumer.json")
-		with open(full_file_path) as json_file_stream:
-			try:
-				return json.load(json_file_stream)[self.cmd_name]
-			except KeyError:
-				raise NoSuchSchemaException(self.cmd_name)
+    def _get_schema(self) -> dict:
+        cur_abs_path = os.path.abspath(os.path.dirname(__file__))
+        full_file_path = os.path.join(cur_abs_path, "../../schema/consumer.json")
+        with open(full_file_path) as json_file_stream:
+            try:
+                return json.load(json_file_stream)[self.cmd_name]
+            except KeyError:
+                raise NoSuchSchemaException(self.cmd_name)
 
 
 class CreateConsumerCommand(ConsumerCommand):
-	def __init__(self, context: ConsumerContext):
-		super().__init__("create_consumer", context)
+    def __init__(self, context: ConsumerContext):
+        super().__init__("create_consumer", context)
 
-	def _execute_command(self, parameters: dict) -> dict:
-		if self.context.consumer is not None:
-			raise CommandExecutionException("Consumer has already been created!")
+    def validation_enabled(self) -> bool:
+        return True
 
-		self.context.consumer = KafkaConsumer(
-			**parameters,
-			api_version=(2, 3, 0),
-			value_deserializer=lambda v: base64.b64encode(v).decode("ascii")
-		)
-		return self._make_success("Consumer successfully created!")
+    def _execute_command(self, parameters: dict) -> dict:
+        if self.context.consumer is not None:
+            raise ConsumerAlreadyCreatedException()
+
+        self.context.consumer = KafkaConsumer(
+                **parameters,
+                api_version=(2, 3, 0),
+                value_deserializer=lambda v: base64.b64encode(v).decode("ascii")
+                )
+        return self._make_success("Consumer successfully created!")
 
 
 class SubscribeCommand(ConsumerCommand):
-	def __init__(self, context: ConsumerContext):
-		super().__init__("subscribe", context)
+    def __init__(self, context: ConsumerContext):
+        super().__init__("subscribe", context)
 
-	def _execute_command(self, parameters: dict) -> dict:
-		if self.context.consumer is None:
-			raise CommandExecutionException("No consumer created! Please create one!")
+    def validation_enabled(self) -> bool:
+        return True
 
-		consumer_topics = parameters["topics"]
-		self.context.consumer.subscribe(topics=consumer_topics)
-		return self._make_success("Subscription started!")
+    def _execute_command(self, parameters: dict) -> dict:
+        if self.context.consumer is None:
+            raise ConsumerNotCreatedException()
+
+        consumer_topics = parameters["topics"]
+        self.context.consumer.subscribe(topics=consumer_topics)
+        return self._make_success("Subscription started!")
+
+
+class UnsubscribeCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("unsubscribe", context)
+
+    def validation_enabled(self) -> bool:
+        return False 
+
+    def _execute_command(self, parameters: dict) -> dict:
+        if self.context.consumer is None:
+            raise ConsumerNotCreatedException()
+
+        self.context.consumer.unsubscribe()
+        return self._make_success("Unsubscribed from topic/partitions")
+
+
+class TopicsCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("topics", context)
+
+    def validation_enabled(self) -> bool:
+        return False
+
+    def _execute_command(self, parameters: dict) -> dict:
+        if self.context.consumer is None:
+            raise ConsumerNotCreatedException()
+
+        topics = self.context.consumer.topics()
+        return self._make_success("Topics retrieved", topics=list(topics))
+
+
+class SubscriptionsCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("subscriptions", context)
+
+    def validation_enabled(self) -> bool:
+        return False
+
+    def _execute_command(self, parameters: dict) -> dict:
+        if self.context.consumer is None:
+            raise ConsumerNotCreatedException()
+        
+        subs = self.context.consumer.subscription()
+        return self._make_success("Subscriptions retrieved", subscriptions=list(subs))
 
 
 class CommandName(Enum):
-	CREATE_CONSUMER = CreateConsumerCommand
-	SUBSCRIBE = SubscribeCommand
+    CREATE_CONSUMER = CreateConsumerCommand
+    SUBSCRIBE = SubscribeCommand
+    UNSUBSCRIBE = UnsubscribeCommand
+    TOPICS = TopicsCommand
+    SUBSCRIPTIONS = SubscriptionsCommand
 
 
 class CommandFactory:
-	@staticmethod
-	def get_instance(cmd_name: str, context: ConsumerContext) -> AbstractCommand:
-		try:
-			return CommandName[cmd_name.upper()].value(context)
-		except KeyError:
-			raise UnsupportedCommandException(cmd_name)
+    @staticmethod
+    def get_instance(cmd_name: str, context: ConsumerContext) -> AbstractCommand:
+        try:
+            return CommandName[cmd_name.upper()].value(context)
+        except KeyError:
+            raise UnsupportedCommandException(cmd_name)
+

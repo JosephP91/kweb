@@ -72,3 +72,4 @@ class ConsumerWebSocketHandler(WebSocketHandler):
         message = str(error)
         self._context.logger.error("[{}] - {}".format(self.id, message))
         return dumps({"error": message, "client_id": self.id})
+
