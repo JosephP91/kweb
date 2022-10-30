@@ -6,7 +6,7 @@
 		"fetch_max_bytes": "integer",
 		"auto_offset_reset": "boolean",
 		"enable_auto_commit": "boolean",
-
+		"max_poll_records": "integer",
 		"required": ["bootstrap_servers"]
 	},
 

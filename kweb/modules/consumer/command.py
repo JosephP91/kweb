@@ -48,7 +48,6 @@ class CreateConsumerCommand(ConsumerCommand):
 			api_version=(2, 3, 0),
 			value_deserializer=lambda v: base64.b64encode(v).decode("ascii")
 		)
-		self.context.logger.info("Consumer successfully created: {}".format(parameters))
 		return self._make_success("Consumer successfully created!")
 
 
@@ -62,7 +61,6 @@ class SubscribeCommand(ConsumerCommand):
 
 		consumer_topics = parameters["topics"]
 		self.context.consumer.subscribe(topics=consumer_topics)
-		self.context.logger.info("Subscribed to topics {}".format(consumer_topics))
 		return self._make_success("Subscription started!")
 
 
