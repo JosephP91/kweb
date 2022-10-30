@@ -53,5 +53,24 @@
 				"required": ["topic", "partition"]
 			}
 		}
+	},
+
+
+	"assign": {
+		"topic-partitions": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"topic": {
+						"type": "string"
+					},
+					"partition": {
+						"type": "integer"
+					}
+				},
+				"required": ["topic", "partition"]
+			}
+		}
 	}
 }

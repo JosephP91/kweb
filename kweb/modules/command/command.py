@@ -39,9 +39,8 @@ class AbstractCommand(abc.ABC):
         except Exception as e:
             return self._make_error("Generic error occurred!", e)
 
-    @abc.abstractmethod
     def validation_enabled(self) -> bool:
-        raise NotImplementedError()
+        return True
 
     @abc.abstractmethod
     def _execute_command(self, parameter: dict) -> dict:

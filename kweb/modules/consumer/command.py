@@ -16,6 +16,7 @@ from ..command import AbstractCommand
 from ..command.decorator import consumer_created
 from ..command.exception import *
 from .exception import NoSuchSchemaException
+from ..utils import KafkaUtils
 
 
 class ConsumerCommand(AbstractCommand, abc.ABC):
@@ -41,9 +42,6 @@ class CreateConsumerCommand(ConsumerCommand):
     def __init__(self, context: ConsumerContext):
         super().__init__("create_consumer", context)
 
-    def validation_enabled(self) -> bool:
-        return True
-
     def _execute_command(self, parameters: dict) -> dict:
         if self.context.consumer is not None:
             raise ConsumerAlreadyCreatedException()
@@ -59,9 +57,6 @@ class CreateConsumerCommand(ConsumerCommand):
 class SubscribeCommand(ConsumerCommand):
     def __init__(self, context: ConsumerContext):
         super().__init__("subscribe", context)
-
-    def validation_enabled(self) -> bool:
-        return True
 
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
@@ -113,15 +108,9 @@ class SeekToEndCommand(ConsumerCommand):
     def __init__(self, context: ConsumerCommand):
         super().__init__("seek_to_end", context)
 
-    def validation_enabled(self) -> bool:
-        return True
-
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
-        topic_parts = list()
-        for topic_part in parameters["topic-partitions"]:
-            topic_parts.append(TopicPartition(topic_part["topic"], topic_part["partition"]))
-
+        topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.context.consumer.seek_to_end(*topic_parts)
         return self._make_success("Seek to end successfully!")
 
@@ -130,17 +119,48 @@ class SeekToBeginningCommand(ConsumerCommand):
     def __init__(self, context: ConsumerCommand):
         super().__init__("seek_to_beginning", context)
 
-    def validation_enabled(self) -> bool:
-        return True
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"]) 
+        self.context.consumer.seek_to_end(*topic_parts)
+        return self._make_success("Seek to beginning successfully!")
+
+
+class AssignCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("assign", context)
 
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
-        topic_parts = list()
-        for topic_part in parameters["topic-partitions"]:
-            topic_parts.append(TopicPartition(topic_part["topic"], topic_part["partition"]))
+        topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
+        self.context.consumer.assign(topic_parts)
+        return self._make_success("Assigned successfully!")
 
-        self.context.consumer.seek_to_end(*topic_parts)
-        return self._make_success("Seek to beginning successfully!")
+
+class AssignmentCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("assignment", context)
+
+    def validation_enabled(self):
+        return False
+
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        assignment = self.context.consumer.assignment()
+        return self._make_success("Assignment retrieved!", assignment=list(assignment))
+
+
+class BootstrapConnectedCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("bootstrap_connected", context)
+
+    def validation_enabled(self):
+        return False
+    
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        status = self.context.consumer.bootstrap_connected()
+        return self._make_success("Command returned status", status=status)
 
 
 class CommandName(Enum):
@@ -151,6 +171,9 @@ class CommandName(Enum):
     SUBSCRIPTIONS = SubscriptionsCommand
     SEEK_TO_END = SeekToEndCommand
     SEEK_TO_BEGINNING = SeekToBeginningCommand
+    ASSIGN = AssignCommand
+    ASSIGNMENT = AssignmentCommand
+    BOOTSTRAP_CONNECTED = BootstrapConnectedCommand
 
 
 class CommandFactory:

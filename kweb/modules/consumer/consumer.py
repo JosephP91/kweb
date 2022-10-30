@@ -5,17 +5,10 @@ from typing import TYPE_CHECKING, Callable
 from tornado.ioloop import IOLoop
 
 from ..command import CommandQueueEmptyException
+from ..utils import KafkaUtils
 
 if TYPE_CHECKING:
     from ..context import ConsumerContext
-
-
-
-def content_to_json(data) -> list:
-    output = dict()
-    for tp, messages in data.items():
-        output[(tp.topic, tp.partition)] = [message._asdict() for message in messages]
-    return [{'key': key, 'value': value} for key, value in output.items()]
 
 
 class AsyncConsumer:
@@ -47,7 +40,7 @@ class AsyncConsumer:
                 try:
                     cmd_output = self.ctx.consumer.poll(timeout_ms=100)
                     if len(cmd_output) > 0:
-                        cmd_output = content_to_json(cmd_output)
+                        cmd_output = KafkaUtils.consumer_records_to_list(cmd_output)
                         self._spawn_ioloop_callback(self.ctx.on_consumer_data, cmd_output)
                 except Exception as e:
                     self._spawn_ioloop_callback(self.ctx.on_consumer_error, e)
