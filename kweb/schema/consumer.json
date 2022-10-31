@@ -1,75 +1,199 @@
 {
 	"create_consumer": {
-		"bootstrap_servers": "array",
-		"group_id": "string",
-		"fetch_max_wait_ms": "integer",
-		"fetch_max_bytes": "integer",
-		"auto_offset_reset": "boolean",
-		"enable_auto_commit": "boolean",
-		"max_poll_records": "integer",
+		"type": "object",
+		"properties": {
+			"bootstrap_servers": {
+				"type": "array",
+				"minItems": 1
+			},
+			"group_id": {
+				"type": "string"
+			},
+			"fetch_max_wait_ms": {
+				"type": "integer",
+				"minimum": 0
+			},
+			"fetch_max_bytes": {
+				"type": "integer",
+				"minimum": 0
+			},
+			"auto_offset_reset": {
+				"type": "boolean"
+			},
+			"enable_auto_commit": {
+				"type": "boolean"
+			},
+			"max_poll_records": {
+				"type": "string",
+				"minimum": 1
+			}
+		},
 		"required": ["bootstrap_servers"]
 	},
 
 	"subscribe": {
-		"topics": "array",
-		"items": {
-			"type": "string"
+		"type": "object",
+		"properties": {
+			"topics": {
+				"type": "array",
+				"items": {
+					"type": "string",
+					"minLength": 1
+				},
+				"minItems": 1,
+				"uniqueItems": true
+			}
 		},
-
 		"required": ["topics"]
 	},
 
 	"seek_to_end": {
-		"topic-partitions": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"topic": {
-						"type": "string"
+		"type": "object",
+		"properties": {
+			"topic-partitions": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"topic": {
+							"type": "string",
+							"minLength": 1
+						},
+						"partition": {
+							"type": "integer",
+							"minimum": 0
+						}
 					},
-					"partition": {
-						"type": "integer"
-					}
-				},
-				"required": ["topic", "partition"]
+					"required": ["topic", "partition"]
+				}
 			}
 		}
 	},
 
 	"seek_to_beginning": {
-		"topic-partitions": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"topic": {
-						"type": "string"
+		"type": "object",
+		"properties": {
+			"topic-partitions": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"topic": {
+							"type": "string",
+							"minLength": 1
+						},
+						"partition": {
+							"type": "integer",
+							"minimum": 0
+						}
 					},
-					"partition": {
-						"type": "integer"
-					}
-				},
-				"required": ["topic", "partition"]
+					"required": ["topic", "partition"]
+				}
 			}
 		}
 	},
 
 
 	"assign": {
-		"topic-partitions": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"topic": {
-						"type": "string"
+		"type": "object",
+		"properties": {
+			"topic-partitions": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"topic": {
+							"type": "string",
+							"minLength": 1
+						},
+						"partition": {
+							"type": "integer",
+							"minimum": 0
+						}
 					},
-					"partition": {
-						"type": "integer"
-					}
+					"required": ["topic", "partition"]
 				},
-				"required": ["topic", "partition"]
+				"minItems": 1
+			}
+		}
+	},
+
+	"commit_async": {
+		"type": "object",
+		"properties": {
+			"topic_offset_metadata": {
+				"type": "array",
+				"items":{ 
+					"type": "object",
+					"properties": {
+						"key": {
+							"type": "object",
+							"properties": {
+								"topic": {
+									"type": "string",
+									"minLength": 1
+								},
+								"partition": {
+									"type": "integer",
+									"minimum": 0
+								}
+							},
+							"required": ["topic", "partition"]
+						},
+						"value": {
+							"type": "object",
+							"properties": {
+								"offset": {
+									"type": "integer"
+								},
+								"metadata": {
+									"type": "string"
+								}
+							},
+							"required": ["offset", "metadata"]
+						}
+					}
+				}
+			}
+		}
+	},
+
+	"commit": {
+		"type": "object",
+		"properties": {
+			"topic_offset_metadata": {
+				"type": "array",
+				"items":{ 
+					"type": "object",
+					"properties": {
+						"key": {
+							"type": "object",
+							"properties": {
+								"topic": {
+									"type": "string",
+									"minLength": 1
+								},
+								"partition": {
+									"type": "integer",
+									"minimum": 0
+								}
+							},
+							"required": ["topic", "partition"]
+						},
+						"value": {
+							"type": "object",
+							"properties": {
+								"offset": {
+									"type": "integer"
+								},
+								"metadata": {
+									"type": "string"
+								}
+							},
+							"required": ["offset", "metadata"]
+						}
+					}
+				}
 			}
 		}
 	}

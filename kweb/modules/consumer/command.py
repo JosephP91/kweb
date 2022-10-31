@@ -6,6 +6,7 @@ import json
 import os
 from enum import Enum
 from typing import TYPE_CHECKING
+from tornado.ioloop import IOLoop
 
 from kafka import KafkaConsumer, TopicPartition
 
@@ -13,10 +14,10 @@ if TYPE_CHECKING:
     from ..context import ConsumerContext
 
 from ..command import AbstractCommand
-from ..command.decorator import consumer_created
+from ..command.decorator import consumer_created, consumer_not_created
 from ..command.exception import *
 from .exception import NoSuchSchemaException
-from ..utils import KafkaUtils
+from ..utils import KafkaUtils, Response
 
 
 class ConsumerCommand(AbstractCommand, abc.ABC):
@@ -42,16 +43,14 @@ class CreateConsumerCommand(ConsumerCommand):
     def __init__(self, context: ConsumerContext):
         super().__init__("create_consumer", context)
 
+    @consumer_not_created
     def _execute_command(self, parameters: dict) -> dict:
-        if self.context.consumer is not None:
-            raise ConsumerAlreadyCreatedException()
-
         self.context.consumer = KafkaConsumer(
             **parameters,
             api_version=(2, 3, 0),
             value_deserializer=lambda v: base64.b64encode(v).decode("ascii")
         )
-        return self._make_success("Consumer successfully created!")
+        return {"message": "Consumer successfully created!"}
 
 
 class SubscribeCommand(ConsumerCommand):
@@ -62,7 +61,7 @@ class SubscribeCommand(ConsumerCommand):
     def _execute_command(self, parameters: dict) -> dict:
         consumer_topics = parameters["topics"]
         self.context.consumer.subscribe(topics=consumer_topics)
-        return self._make_success("Subscription started!")
+        return {"message": "Subscription started!"}
 
 
 class UnsubscribeCommand(ConsumerCommand):
@@ -75,7 +74,7 @@ class UnsubscribeCommand(ConsumerCommand):
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
         self.context.consumer.unsubscribe()
-        return self._make_success("Unsubscribed from topic/partitions")
+        return {"message": "Unsubscribed from topic/partitions"}
 
 
 class TopicsCommand(ConsumerCommand):
@@ -88,7 +87,7 @@ class TopicsCommand(ConsumerCommand):
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
         topics = self.context.consumer.topics()
-        return self._make_success("Topics retrieved", topics=list(topics))
+        return {"message": "Topics retrieved", "topics": list(topics)}
 
 
 class SubscriptionsCommand(ConsumerCommand):
@@ -101,7 +100,7 @@ class SubscriptionsCommand(ConsumerCommand):
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
         subs = self.context.consumer.subscription()
-        return self._make_success("Subscriptions retrieved", subscriptions=list(subs))
+        return {"message": "Subscriptions retrieved", "subscriptions": list(subs)}
 
 
 class SeekToEndCommand(ConsumerCommand):
@@ -112,7 +111,7 @@ class SeekToEndCommand(ConsumerCommand):
     def _execute_command(self, parameters: dict) -> dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.context.consumer.seek_to_end(*topic_parts)
-        return self._make_success("Seek to end successfully!")
+        return {"message": "Seeked to end successfully!"}
 
 
 class SeekToBeginningCommand(ConsumerCommand):
@@ -123,7 +122,7 @@ class SeekToBeginningCommand(ConsumerCommand):
     def _execute_command(self, parameters: dict) -> dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"]) 
         self.context.consumer.seek_to_end(*topic_parts)
-        return self._make_success("Seek to beginning successfully!")
+        return {"message": "Seeked to beginning successfully!"}
 
 
 class AssignCommand(ConsumerCommand):
@@ -134,7 +133,7 @@ class AssignCommand(ConsumerCommand):
     def _execute_command(self, parameters: dict) -> dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.context.consumer.assign(topic_parts)
-        return self._make_success("Assigned successfully!")
+        return {"message": "Assigned successfully!"}
 
 
 class AssignmentCommand(ConsumerCommand):
@@ -147,7 +146,7 @@ class AssignmentCommand(ConsumerCommand):
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
         assignment = self.context.consumer.assignment()
-        return self._make_success("Assignment retrieved!", assignment=list(assignment))
+        return {"message": "Assignment retrieved!", "assignment": list(assignment)}
 
 
 class BootstrapConnectedCommand(ConsumerCommand):
@@ -160,7 +159,45 @@ class BootstrapConnectedCommand(ConsumerCommand):
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
         status = self.context.consumer.bootstrap_connected()
-        return self._make_success("Command returned status", status=status)
+        return {"message": "OK", "status": status}
+
+
+class CommitAsyncCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("commit_async", context)
+
+    def validation_enabled(self):
+        return True
+
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+       tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic_offset_metadata"])
+       self.context.consumer.commit_async(tp_om, lambda offset, response: self._callback(offset, response))
+       return {"message": "Committing ..."}
+
+    def _callback(self, offset, response):
+        if isinstance(response, Exception):
+            response_data = Response.cmd_error(self.cmd_name, self.context.client_id, response) 
+        else:
+            data = KafkaUtils.from_topic_partition_offset_metadata(offset)
+            data = {"message": "Committed sucessfully!", "data": data, "response": response}
+            response_data = Response.success(self.cmd_name, self.context, **data)
+        
+        IOLoop.spawn_callback(self.context.io_loop, self.context.on_consumer_data, response_data) 
+
+
+class CommitCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("commit", context)
+
+    def validation_enabled(self):
+        return True
+    
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic_offset_metadata"])
+        self.context.consumer.commit(tp_om)
+        return {"message": "Committed!"}
 
 
 class CommandName(Enum):
@@ -174,6 +211,8 @@ class CommandName(Enum):
     ASSIGN = AssignCommand
     ASSIGNMENT = AssignmentCommand
     BOOTSTRAP_CONNECTED = BootstrapConnectedCommand
+    COMMIT_ASYNC = CommitAsyncCommand
+    COMMIT = CommitCommand
 
 
 class CommandFactory:

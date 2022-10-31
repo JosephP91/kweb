@@ -51,7 +51,7 @@ class ConsumerContext(Context):
 		self._consumer = None
 		self._io_loop = None
 		self._on_data_available = None
-		self.on_consumer_error = None
+		self._on_consumer_error = None
 
 	@property
 	def cmd_queue(self) -> CommandQueue:

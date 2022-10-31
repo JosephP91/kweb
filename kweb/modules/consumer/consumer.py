@@ -38,10 +38,10 @@ class AsyncConsumer:
                 if self.ctx.consumer is None:
                     continue
                 try:
-                    cmd_output = self.ctx.consumer.poll(timeout_ms=100)
-                    if len(cmd_output) > 0:
-                        cmd_output = KafkaUtils.consumer_records_to_list(cmd_output)
-                        self._spawn_ioloop_callback(self.ctx.on_consumer_data, cmd_output)
+                    records = self.ctx.consumer.poll(timeout_ms=100)
+                    if len(records) > 0:
+                        records = KafkaUtils.consumer_records_to_list(records)
+                        self._spawn_ioloop_callback(self.ctx.on_consumer_data, records)
                 except Exception as e:
                     self._spawn_ioloop_callback(self.ctx.on_consumer_error, e)
 

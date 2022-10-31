@@ -3,12 +3,12 @@ from __future__ import annotations
 import abc
 from typing import TYPE_CHECKING
 
-from jsonschema import validate, ValidationError
+from jsonschema import validate
 
 if TYPE_CHECKING:
     from ..context import Context
 
-from .exception import CommandExecutionException
+from ..utils import Response
 
 
 class AbstractCommand(abc.ABC):
@@ -28,16 +28,11 @@ class AbstractCommand(abc.ABC):
         try:
             if self.validation_enabled():
                 validate(instance=parameters, schema=self._get_schema())
-            return self._execute_command(parameters)
-
-        except ValidationError as e:
-            return self._make_error("Parameters validation failed!", e)
-
-        except CommandExecutionException as e:
-            return self._make_error("Command execution failed!", e)
+            output = self._execute_command(parameters)
+            return Response.success(self.cmd_name, self.context, **output)
 
         except Exception as e:
-            return self._make_error("Generic error occurred!", e)
+            return Response.cmd_error(self.cmd_name, self.context, e)
 
     def validation_enabled(self) -> bool:
         return True
@@ -49,20 +44,4 @@ class AbstractCommand(abc.ABC):
     @abc.abstractmethod
     def _get_schema(self) -> dict:
         raise NotImplementedError()
-
-    def _make_success(self, message: str, **payload) -> dict:
-        return {
-            "command_name": self.cmd_name,
-            "client_id": self.context.client_id,
-            "message": message,
-            "payload": payload
-        }
-
-    def _make_error(self, message: str, reason: Exception):
-        return {
-            "command_name": self.cmd_name,
-            "client_id": self.context.client_id,
-            "message": message,
-            "reason": str(reason)
-        }
 
