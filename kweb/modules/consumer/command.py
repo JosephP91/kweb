@@ -171,7 +171,7 @@ class CommitAsyncCommand(ConsumerCommand):
 
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
-        tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic_offset_metadata"])
+        tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic-offset-metadata"])
         self.ctx.consumer.commit_async(tp_om, lambda offset, response: self._callback(offset, response))
         return {"message": "Committing ..."}
 
@@ -195,7 +195,7 @@ class CommitCommand(ConsumerCommand):
 
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
-        tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic_offset_metadata"])
+        tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic-offset-metadata"])
         self.ctx.consumer.commit(tp_om)
         return {"message": "Committed!"}
 
@@ -207,7 +207,7 @@ class CommittedCommand(ConsumerCommand):
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
         metadata = parameters["metadata"] if "metadata" in parameters else False
-        topic_partition = KafkaUtils.to_topic_partition(parameters["topic_partition"])
+        topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
 
         last_committed_offset = self.ctx.consumer.committed(topic_partition, metadata)
         if isinstance(last_committed_offset, OffsetAndMetadata):
@@ -231,7 +231,7 @@ class PositionCommand(ConsumerCommand):
 
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
-        topic_partition = KafkaUtils.to_topic_partition(parameters["topic_partition"])
+        topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
         offset = self.ctx.consumer.position(topic_partition)
         return {"message": "Retrieved position", "offset": offset}
 
@@ -242,9 +242,41 @@ class HighwaterCommand(ConsumerCommand):
 
     @consumer_created
     def _execute_command(self, parameters: dict) -> dict:
-        topic_partition = KafkaUtils.to_topic_partition(parameters["topic_partition"])
+        topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
         offset = self.ctx.consumer.highwater(topic_partition)
         return {"message": "Retrieved highwater offset", "offset": offset}
+
+
+class PauseCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("pause", context)
+
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
+        self.ctx.consumer.pause(*topic_parts)
+        return {"message": "Paused successfully!"}
+
+
+class PausedCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("paused", context)
+
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        paused_tp = self.ctx.consumer.paused()
+        return {"message": "Retrieved paused topic partitions", "topic_partitions": paused_tp}
+
+
+class ResumeCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("resume", context)
+
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
+        self.ctx.consumer.resume(*topic_parts)
+        return {"message": "Resumed successfully!"}
 
 
 class CommandName(Enum):
@@ -264,6 +296,9 @@ class CommandName(Enum):
     PARTITIONS_FOR_TOPIC = PartitionsForTopic
     POSITION = PositionCommand
     HIGHWATER = HighwaterCommand
+    PAUSE = PauseCommand
+    PAUSED = PausedCommand
+    RESUME = ResumeCommand
 
 
 class CommandFactory:

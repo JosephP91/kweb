@@ -115,13 +115,14 @@
 				},
 				"minItems": 1
 			}
-		}
+		},
+		"required": ["topic-partitions"]
 	},
 
 	"commit_async": {
 		"type": "object",
 		"properties": {
-			"topic_offset_metadata": {
+			"topic-offset-metadata": {
 				"type": "array",
 				"items":{ 
 					"type": "object",
@@ -161,7 +162,7 @@
 	"commit": {
 		"type": "object",
 		"properties": {
-			"topic_offset_metadata": {
+			"topic-offset-metadata": {
 				"type": "array",
 				"items":{ 
 					"type": "object",
@@ -201,7 +202,7 @@
 	"committed": {
 		"type": "object",
 		"properties": {
-			"topic_partition": {
+			"topic-partition": {
 				"type": "object",
 				"properties": {
 					"topic": {
@@ -219,7 +220,7 @@
 				"type": "boolean"
 			}
 		},
-		"required": ["topic_partition"]
+		"required": ["topic-partition"]
 	},
 
 	"partitions_for_topic": {
@@ -236,7 +237,7 @@
 	"position": {
 		"type": "object",
 		"properties": {
-			"topic_partition": {
+			"topic-partition": {
 				"type": "object",
 				"properties": {
 					"topic": {
@@ -250,13 +251,13 @@
 				}
 			}
 		},
-		"required": ["topic_partition"]
+		"required": ["topic-partition"]
 	},
 
 	"highwater": {
 		"type": "object",
 		"properties": {
-			"topic_partition": {
+			"topic-partition": {
 				"type": "object",
 				"properties": {
 					"topic": {
@@ -269,6 +270,55 @@
 					}
 				}
 			}
-		}
+		},
+		"required": ["topic-partitions"]
+	},
+
+	"pause": {
+		"type": "object",
+		"properties": {
+			"topic-partitions": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"topic": {
+							"type": "string",
+							"minLength": 1
+						},
+						"partition": {
+							"type": "integer",
+							"minimum": 0
+						}
+					},
+					"required": ["topic", "partition"]
+				}
+			}
+		},
+		"required": ["topic-partitions"]
+	},
+
+	"resume": {
+		"type": "object",
+		"properties": {
+			"topic-partitions": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"topic": {
+							"type": "string",
+							"minLength": 1
+						},
+						"partition": {
+							"type": "integer",
+							"minimum": 0
+						}
+					},
+					"required": ["topic", "partition"]
+				}
+			}
+		},
+		"required": ["topic-partitions"]
 	}
 }
