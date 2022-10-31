@@ -16,7 +16,7 @@ class KafkaUtils:
 
         topic_parts = list()
         for topic_part in topic_partitions:
-            topic_parts.append(TopicPartition(topic_part["topic"], topic_part["partition"]))
+            topic_parts.append(KafkaUtils.to_topic_partition(topic_part))
         return topic_parts
 
     @staticmethod
@@ -29,7 +29,7 @@ class KafkaUtils:
             key = topic_part_offset_meta["key"]
             value = topic_part_offset_meta["value"]
             
-            topic_partition = TopicPartition(key["topic"], key["partition"])
+            topic_partition = KafkaUtils.to_topic_partition(key)
             offset_metadata = OffsetAndMetadata(value["offset"], value["metadata"])
             tp_om[topic_partition] = offset_metadata
         return tp_om
@@ -38,9 +38,10 @@ class KafkaUtils:
     def from_topic_partition_offset_metadata(topic_partition_offset_metadata: dict) -> list:
         tp_om = list()
         for key, value in topic_partition_offset_metadata.items():
-            tp_om.append({
-                "key": {"topic": key.topic, "partition": key.partition},
-                "value": {"offset": value.offset, "metadata": value.metadata}
-            })
+            tp_om.append({"key": key._asdict(), "value": value._asdict()})
         return tp_om
+
+    @staticmethod
+    def to_topic_partition(topic_partition: dict) -> TopicPartition:
+        return TopicPartition(topic_partition["topic"], topic_partition["partition"])
 

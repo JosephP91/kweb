@@ -8,7 +8,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 from tornado.ioloop import IOLoop
 
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer, OffsetAndMetadata
 
 if TYPE_CHECKING:
     from ..context import ConsumerContext
@@ -200,6 +200,21 @@ class CommitCommand(ConsumerCommand):
         return {"message": "Committed!"}
 
 
+class CommittedCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("committed", context)
+
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        metadata = parameters["metadata"] if "metadata" in parameters else False
+        topic_partition = KafkaUtils.to_topic_partition(parameters["topic_partition"])
+
+        last_committed_offset = self.ctx.consumer.committed(topic_partition, metadata)
+        if isinstance(last_committed_offset, OffsetAndMetadata):
+            last_committed_offset = last_committed_offset._asdict()
+        return {"message": "Fetched committed offsets", "last_committed_offset": last_committed_offset}
+
+
 class CommandName(Enum):
     CREATE_CONSUMER = CreateConsumerCommand
     SUBSCRIBE = SubscribeCommand
@@ -213,6 +228,7 @@ class CommandName(Enum):
     BOOTSTRAP_CONNECTED = BootstrapConnectedCommand
     COMMIT_ASYNC = CommitAsyncCommand
     COMMIT = CommitCommand
+    COMMITTED = CommittedCommand
 
 
 class CommandFactory:
