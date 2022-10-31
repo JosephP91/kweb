@@ -21,7 +21,7 @@ class AbstractCommand(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def context(self) -> Context:
+    def ctx(self) -> Context:
         raise NotImplementedError()
 
     def execute(self, parameters: dict) -> dict:
@@ -29,10 +29,10 @@ class AbstractCommand(abc.ABC):
             if self.validation_enabled():
                 validate(instance=parameters, schema=self._get_schema())
             output = self._execute_command(parameters)
-            return Response.success(self.cmd_name, self.context, **output)
+            return Response.success(self.cmd_name, self.ctx, **output)
 
         except Exception as e:
-            return Response.cmd_error(self.cmd_name, self.context, e)
+            return Response.cmd_error(self.cmd_name, self.ctx, e)
 
     def validation_enabled(self) -> bool:
         return True

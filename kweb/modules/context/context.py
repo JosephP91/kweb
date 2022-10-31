@@ -9,8 +9,7 @@ if TYPE_CHECKING:
     from munch import DefaultMunch
     from kafka import KafkaConsumer
 
-    from ..command import CommandQueue, OutputQueue
-    from ..parser import ICommandParser
+    from ..command import CommandQueue, OutputQueue, ICommandParser
 
 
 class Context:
@@ -46,6 +45,7 @@ class Context:
 
 class ApplicationContext(Context):
     def __init__(self):
+        super().__init__()
         self._parser = None
 
     @property
