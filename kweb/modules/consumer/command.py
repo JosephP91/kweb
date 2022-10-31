@@ -215,6 +215,38 @@ class CommittedCommand(ConsumerCommand):
         return {"message": "Fetched committed offsets", "last_committed_offset": last_committed_offset}
 
 
+class PartitionsForTopic(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("partitions_for_topic", context)
+
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        partitions = self.ctx.consumer.partitions_for_topic(parameters["topic"])
+        return {"message": "Retrieved partitions", "partitions": list(partitions)}
+
+
+class PositionCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("position", context)
+
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        topic_partition = KafkaUtils.to_topic_partition(parameters["topic_partition"])
+        offset = self.ctx.consumer.position(topic_partition)
+        return {"message": "Retrieved position", "offset": offset}
+
+
+class HighwaterCommand(ConsumerCommand):
+    def __init__(self, context: ConsumerContext):
+        super().__init__("highwater", context)
+
+    @consumer_created
+    def _execute_command(self, parameters: dict) -> dict:
+        topic_partition = KafkaUtils.to_topic_partition(parameters["topic_partition"])
+        offset = self.ctx.consumer.highwater(topic_partition)
+        return {"message": "Retrieved highwater offset", "offset": offset}
+
+
 class CommandName(Enum):
     CREATE_CONSUMER = CreateConsumerCommand
     SUBSCRIBE = SubscribeCommand
@@ -229,6 +261,9 @@ class CommandName(Enum):
     COMMIT_ASYNC = CommitAsyncCommand
     COMMIT = CommitCommand
     COMMITTED = CommittedCommand
+    PARTITIONS_FOR_TOPIC = PartitionsForTopic
+    POSITION = PositionCommand
+    HIGHWATER = HighwaterCommand
 
 
 class CommandFactory:

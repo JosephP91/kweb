@@ -220,5 +220,55 @@
 			}
 		},
 		"required": ["topic_partition"]
+	},
+
+	"partitions_for_topic": {
+		"type": "object",
+		"properties": {
+			"topic": {
+				"type": "string",
+				"minLength": 1
+			}
+		},
+		"required": ["topic"]
+	},
+
+	"position": {
+		"type": "object",
+		"properties": {
+			"topic_partition": {
+				"type": "object",
+				"properties": {
+					"topic": {
+						"type": "string",
+						"minLength": 1
+					},
+					"partition": {
+						"type": "integer",
+						"minimum": 0
+					}
+				}
+			}
+		},
+		"required": ["topic_partition"]
+	},
+
+	"highwater": {
+		"type": "object",
+		"properties": {
+			"topic_partition": {
+				"type": "object",
+				"properties": {
+					"topic": {
+						"type": "string",
+						"minLength": 1
+					},
+					"partition": {
+						"type": "integer",
+						"minimum": 0
+					}
+				}
+			}
+		}
 	}
 }
