@@ -3,20 +3,25 @@ import asyncio
 from tornado.options import define, options
 from tornado.web import Application
 
+from modules.command import CommandParserFactory
 from modules.config import ConfigReader
 from modules.consumer import ConsumerWebSocketHandler
+from modules.context import ApplicationContext
 from modules.logger import LoggerFactory
 
 config = ConfigReader.read("local")
 logger = LoggerFactory.get_logger(config)
+parser = CommandParserFactory.get_instance(config)
 
 define("port", default=config.server.port, help="Run on the given port", type=int)
 
-
-parameters = dict(config=config, logger=logger)
+app_context = ApplicationContext()
+app_context.config = config
+app_context.logger = logger
+app_context.parser = parser
 
 handlers = [
-	("/kweb/consumer/ws/v1", ConsumerWebSocketHandler, parameters)
+	("/kweb/consumer/ws/v1", ConsumerWebSocketHandler, dict(app_context=app_context))
 ]
 
 

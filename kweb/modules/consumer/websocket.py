@@ -8,29 +8,28 @@ from uuid import uuid4
 from tornado.ioloop import IOLoop
 
 if TYPE_CHECKING:
-    from logging import Logger
-    from munch import DefaultMunch
+    from ..context import ApplicationContext
 
 from tornado.websocket import WebSocketHandler
 
 from .consumer import AsyncConsumer
 from .command import CommandFactory
+from ..command import QueuedCommand, CommandQueue, OutputQueue
 from ..context import ConsumerContext
-from ..command import *
 from ..utils import Response
 
 
 class ConsumerWebSocketHandler(WebSocketHandler):
-    def initialize(self, config: DefaultMunch, logger: Logger):
+    def initialize(self, app_context: ApplicationContext):
         self._id = uuid4()
-        self._parser = CommandParserFactory.get_instance(config)
+        self._parser = app_context.parser 
         self._async_consumer = None
 
         self._ctx = ConsumerContext()
         self._ctx.client_id = self.id
         self._ctx.io_loop = IOLoop.current()
-        self._ctx.logger = logger
-        self._ctx.config = config
+        self._ctx.logger = app_context.logger
+        self._ctx.config = app_context.config
         self._ctx.cmd_queue = CommandQueue()
         self._ctx.out_queue = OutputQueue()
         self._ctx.on_consumer_data = self._on_consumer_data

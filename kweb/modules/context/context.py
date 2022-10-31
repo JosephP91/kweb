@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from kafka import KafkaConsumer
 
     from ..command import CommandQueue, OutputQueue
+    from ..parser import ICommandParser
 
 
 class Context:
@@ -41,6 +42,19 @@ class Context:
     @config.setter
     def config(self, config: DefaultMunch):
         self._config = config
+
+
+class ApplicationContext(Context):
+    def __init__(self):
+        self._parser = None
+
+    @property
+    def parser(self) -> ICommandParser:
+        return self._parser
+
+    @parser.setter
+    def parser(self, parser: ICommandParser):
+        self._parser = parser
 
 
 class ConsumerContext(Context):
