@@ -1,0 +1,8 @@
+title: kweb 
+description: Kafka API exposed over websocket
+google_analytics: 340293242
+show_downloads: true
+theme: jekyll-theme-hacker
+
+gems:
+  - jekyll-mentions
