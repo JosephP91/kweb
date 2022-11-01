@@ -17,8 +17,12 @@ class AsyncConsumer:
         self._ctx = ctx
 
     @property
-    def ctx(self):
+    def ctx(self) -> ConsumerContext:
         return self._ctx
+
+    @property
+    def logger(self) -> Logger:
+        return self.ctx.logger
 
     def start(self):
         IOLoop.current().run_in_executor(None, self._callback)
@@ -27,7 +31,7 @@ class AsyncConsumer:
         self._should_stop = True
 
     def _callback(self):
-        self.ctx.logger.info("Starting consumer {}".format(self.ctx.client_id))
+        self.logger.info("[{}] - Starting consumer".format(self.ctx.client_id))
         while not self._should_stop:
             try:
                 queued_cmd = self.ctx.cmd_queue.pop(block=True, timeout=1)
@@ -45,9 +49,9 @@ class AsyncConsumer:
                 except Exception as e:
                     self._spawn_ioloop_callback(self.ctx.on_consumer_error, e)
 
-        self.ctx.logger.info("Stopping consumer {}".format(self.ctx.client_id))
+        self.logger.info("[{}] - Stopping consumer".format(self.ctx.client_id))
         if self.ctx.consumer is not None:
-            self.ctx.logger.info("Closing consumer {}".format(self.ctx.client_id))
+            self.logger.info("[{}] - Closing consumer".format(self.ctx.client_id))
             self.ctx.consumer.close(autocommit=False)
 
     def _spawn_ioloop_callback(self, callback: Callable, data):

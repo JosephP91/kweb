@@ -55,10 +55,10 @@ class ConsumerWebSocketHandler(WebSocketHandler):
     def on_message(self, message: Union[str, bytes]):
         try:
             message = self._parser.cleanup(message)
-            cmd_input = self._parser.parse(message)
+            parsed_cmd = self._parser.parse(message)
 
-            cmd_instance = CommandFactory.get_instance(cmd_input.command_name, self.ctx)
-            self.ctx.cmd_queue.put(QueuedCommand(cmd_instance, cmd_input.parameters))
+            cmd_instance = CommandFactory.get_instance(parsed_cmd.cmd_name, self.ctx)
+            self.ctx.cmd_queue.put(QueuedCommand(cmd_instance, parsed_cmd.params))
             cmd_output = self.ctx.out_queue.pop()
 
             self.write_message(cmd_output)

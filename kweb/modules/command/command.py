@@ -45,3 +45,6 @@ class AbstractCommand(abc.ABC):
     def _get_schema(self) -> dict:
         raise NotImplementedError()
 
+    def __str__(self):
+        return self.cmd_name
+
