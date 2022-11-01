@@ -256,6 +256,17 @@ class ResumeCommand(AbstractCommand):
         return {"message": "Resumed successfully!"}
 
 
+class SeekCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("seek", ctx)
+
+    @consumer_created
+    def _execute(self, parameters: dict) -> dict:
+        topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
+        self.ctx.consumer.seek(topic_partition, parameters["offset"])
+        return {"message": "Seeked successfully!"}
+
+
 class CommandName(Enum):
     CREATE_CONSUMER = CreateConsumerCommand
     SUBSCRIBE = SubscribeCommand
@@ -276,6 +287,7 @@ class CommandName(Enum):
     PAUSE = PauseCommand
     PAUSED = PausedCommand
     RESUME = ResumeCommand
+    SEEK = SeekCommand
 
 
 class CommandFactory:
