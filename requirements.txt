@@ -1,6 +1,0 @@
-asyncio==3.4.3
-tornado==6.2
-munch==2.5.0
-pyyaml==6.0
-jsonschema==4.16.0
-kafka-python==2.0.2
