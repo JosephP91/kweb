@@ -32,7 +32,7 @@ Now you have the service up and running.
 Consumer API
 --
 
-In order to createa Kafka consumer you have to connect via websocket protocol to the following url:
+In order to create a Kafka consumer you have to connect via websocket protocol to the following url:
 
 ```bash
 ws://localhost:8000/kweb/consumer/ws/v1
@@ -179,7 +179,6 @@ If you want to commit your offset in an asynchronous manner, you can issue the f
     }
 }
 ```
-
 Note that ```topic-offset-metadata``` can also be an empty array. In this way all the offset will be committed. Note also
 that since this command is asynchronous, a callback will notify you on the same socket when the commit will be
 received by the cluster.
@@ -210,8 +209,181 @@ If you want to commit your offset you can issue the following command:
     }
 }
 ```
-
 Note that ```topic-offset-metadata``` can also be an empty array. In this way all the offset will be committed.
 
 More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.commit
 
+
+* ### ***Committed***
+
+If you want to know the last committed offset for a given topic-partition, you can issue the following command:
+
+```json
+{
+    "command_name": "committed", 
+    "parameters": {
+        "topic-partition": {
+            "topic": "<topic-name>",
+            "partition": 0
+        },
+        "metadata": false
+    }
+}
+```
+If you don't want only the last committed offset as an integer, you can set ```metadata``` to ```true```. In this way
+more details will be returned.
+
+More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.committed
+
+
+* ### ***Partitions for topic***
+
+If you want to know the partitions available for a specific topic (assuming you are authorized to do so),
+you can issue the following command:
+
+```json
+{
+    "command_name": "partitions_for_topic", 
+    "parameters": {
+        "topic": "<topic-name>"
+    }
+}
+```
+More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.partitions_for_topic
+
+
+* ### ***Position***
+
+If you want to know the offset of the next record that will be fetched you can issue the following command:
+
+```json
+{
+    "command_name": "position", 
+    "parameters": {
+        "topic-partition": {
+            "topic": "<topic-name>",
+            "partition": 0
+        }
+    }
+}
+```
+More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.position
+
+
+* ### ***Highwater***
+
+If you want to know the last known highwater for a given topic-partition, you can issue the following command:
+
+```json
+{
+    "command_name": "highwater", 
+    "parameters": {
+        "topic-partition": {
+            "topic": "<topic-name>",
+            "partition": 0
+        }
+    }
+}
+```
+If you want to know what's an highwater offset, or you want to have more details on this command, 
+go here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.highwater
+
+
+* ### ***Pause***
+
+If you want to suspend fetching from a set of topic-partitions, you can issue the following command:
+
+```json
+{
+    "command_name": "pause", 
+    "parameters": {
+        "topic-partition": [
+            {
+                "topic": "<topic-name>", 
+                "partition": 0
+            }
+        ]
+    }
+}
+```
+More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.pause
+
+
+* ### ***Resume***
+
+If you want to resume fetching from a set of previously paused topic-partitions, you can issue the following command:
+
+```json
+{
+    "command_name": "resume", 
+    "parameters": {
+        "topic-partition": [
+            {
+                "topic": "<topic-name>", 
+                "partition": 0
+            }
+        ]
+    }
+}
+```
+More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.resume
+
+
+
+* ### ***Seek***
+
+If you want to seek on specifically topic-partion, you can issue the following command:
+
+```json
+{
+    "command_name": "seek", 
+    "parameters": {
+        "topic-partition": {
+            "topic": "<topic-name>", 
+            "partition": 0
+        },
+        "offset": 100
+    }
+}
+```
+More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.seek
+
+
+* ### ***Beginning Offsets***
+
+If you want to get the initial offsets for the specified set of topic-partitions, you can issue the following command:
+
+```json
+{
+    "command_name": "beginning_offsets", 
+    "parameters": {
+        "topic-partition": [
+            {
+                "topic": "<topic-name>", 
+                "partition": 0
+            }
+        ]
+    }
+}
+```
+More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.beginning_offsets
+
+
+* ### ***End Offsets***
+
+If you want to get the end offsets for the specified set of topic-partitions, you can issue the following command:
+
+```json
+{
+    "command_name": "end_offsets", 
+    "parameters": {
+        "topic-partition": [
+            {
+                "topic": "<topic-name>", 
+                "partition": 0
+            }
+        ]
+    }
+}
+```
+More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.end_offsets
