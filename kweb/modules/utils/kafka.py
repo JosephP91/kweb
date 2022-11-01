@@ -45,3 +45,10 @@ class KafkaUtils:
     def to_topic_partition(topic_partition: dict) -> TopicPartition:
         return TopicPartition(topic_partition["topic"], topic_partition["partition"])
 
+    @staticmethod
+    def from_topic_partition_offset(topic_partition_offset: dict) -> list:
+        tp_offset = list()
+        for key, value in topic_partition_offset.items():
+            tp_offset.append({**key._asdict(), "offset": value})
+        return tp_offset
+

@@ -250,7 +250,8 @@
 						"type": "integer",
 						"minimum": 0
 					}
-				}
+				},
+				"requireed": ["topic", "partition"]
 			}
 		},
 		"required": ["topic-partition"]
@@ -270,7 +271,8 @@
 						"type": "integer",
 						"minimum": 0
 					}
-				}
+				},
+				"required": ["topic", "partition"]
 			}
 		},
 		"required": ["topic-partitions"]
@@ -338,12 +340,61 @@
 						"type": "integer",
 						"minimum": 0
 					}
-				}
+				},
+				"required": ["topic", "partition"]
 			},
 			"offset": {
 				"type": "integer",
 				"minimum": 1
 			}
 		}
+	},
+
+	"beginning_offsets": {
+		"type": "object",
+		"properties": {
+			"topic-partitions": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"topic": {
+							"type": "string",
+							"minLength": 1
+						},
+						"partition": {
+							"type": "integer",
+							"minimum": 0
+						}
+					},
+					"required": ["topic", "partition"]
+				}
+			}
+		},
+		"required": ["topic-partitions"]
+	},
+
+	"end_offsets": {
+		"type": "object",
+		"properties": {
+			"topic-partitions": {
+				"type": "array",
+				"items": {
+					"type": "object",
+					"properties": {
+						"topic": {
+							"type": "string",
+							"minLength": 1
+						},
+						"partition": {
+							"type": "integer",
+							"minimum": 0
+						}
+					},
+					"required": ["topic", "partition"]
+				}
+			}
+		},
+		"required": ["topic-partitions"]
 	}
 }

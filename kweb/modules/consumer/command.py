@@ -267,6 +267,30 @@ class SeekCommand(AbstractCommand):
         return {"message": "Seeked successfully!"}
 
 
+class BeginningOffsetsCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("beginning_offsets", ctx)
+
+    @consumer_created
+    def _execute(self, parameters: dict) -> dict:
+        topic_partitions = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
+        offset_tp = self.ctx.consumer.beginning_offsets(topic_partitions)
+        offset_tp = KafkaUtils.from_topic_partition_offset(offset_tp)
+        return {"message": "Offset retrieved!", "topic-partition-offset": offset_tp}
+
+
+class EndOffsetsCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("end_offsets", ctx)
+
+    @consumer_created
+    def _execute(self, parameters: dict) -> dict:
+        topic_partitions = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
+        offset_tp = self.ctx.consumer.end_offsets(topic_partitions)
+        offset_tp = KafkaUtils.from_topic_partition_offset(offset_tp)
+        return {"message": "Offset retrieved!", "topic-partition-offset": offset_tp}
+
+
 class CommandName(Enum):
     CREATE_CONSUMER = CreateConsumerCommand
     SUBSCRIBE = SubscribeCommand
@@ -288,6 +312,8 @@ class CommandName(Enum):
     PAUSED = PausedCommand
     RESUME = ResumeCommand
     SEEK = SeekCommand
+    BEGINNING_OFFSETS = BeginningOffsetsCommand
+    END_OFFSETS = EndOffsetsCommand
 
 
 class CommandFactory:
