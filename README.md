@@ -53,7 +53,8 @@ In order to create a consumer, issue the following command on the websocket:
 }
 ```
 
-Done. Consumer created. If you want to know which options you can specify, you can check here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html
+Done. Consumer created. If you want to know which options you can specify, you can check here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html" target="_blank">Kafka Consumer</a>
 
 
 * ### ***Subscribe***
@@ -68,7 +69,8 @@ After you created a consumer, you should subscribe some topics. You can do that 
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.subscribe
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.subscribe" target="_blank">Subscribe Command</a>
 
 
 * ### ***Unsubscribe***
@@ -81,7 +83,8 @@ If you want to unsubscribe the previously subcribed topics, you can issue the fo
     "parameters": {}
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.unsubscribe
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.unsubscribe" target="_blank">Unsubscribe Command</a>
 
 
 * ### ***Seek to end***
@@ -105,7 +108,8 @@ If you want to seek to end of topic-partition, you can issue the following comma
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.seek_to_end
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.seek_to_end" target="_blank">Seek to End Command</a>
 
 
 * ### ***Seek to beginning***
@@ -129,7 +133,8 @@ If you want to seek to beginning of topic-partition, you can issue the following
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.seek_to_beginning
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.seek_to_beginning" target="_blank">Seek to Beginning Command</a>
 
 
 * ### ***Assign***
@@ -153,7 +158,8 @@ If you want to assign a series of topic-partition to your consumer you can issue
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.assign
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.assign" target="_blank">Assign Command</a>
 
 
 * ### ***Commit Async***
@@ -183,7 +189,8 @@ Note that ```topic-offset-metadata``` can also be an empty array. In this way al
 that since this command is asynchronous, a callback will notify you on the same socket when the commit will be
 received by the cluster.
 
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.commit_async
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.commit_async" target="_blank">Commit Async Command</a>
 
 
 * ### ***Commit***
@@ -211,7 +218,8 @@ If you want to commit your offset you can issue the following command:
 ```
 Note that ```topic-offset-metadata``` can also be an empty array. In this way all the offset will be committed.
 
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.commit
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.commit" target="_blank">Commit Command</a>
 
 
 * ### ***Committed***
@@ -233,7 +241,8 @@ If you want to know the last committed offset for a given topic-partition, you c
 If you don't want only the last committed offset as an integer, you can set ```metadata``` to ```true```. In this way
 more details will be returned.
 
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.committed
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.committed" target="_blank">Committed</a>
 
 
 * ### ***Partitions for topic***
@@ -249,7 +258,8 @@ you can issue the following command:
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.partitions_for_topic
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.partitions_for_topic" target="_blank">Partitions for Topic Command</a>
 
 
 * ### ***Position***
@@ -267,7 +277,8 @@ If you want to know the offset of the next record that will be fetched you can i
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.position
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.position" target="_blank">Position Command</a>
 
 
 * ### ***Highwater***
@@ -285,8 +296,8 @@ If you want to know the last known highwater for a given topic-partition, you ca
     }
 }
 ```
-If you want to know what's an highwater offset, or you want to have more details on this command, 
-go here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.highwater
+If you want to know what's an highwater offset, or you want to have more details on this command, go here:
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.highwater" target="_blank">Highwater Command</a>
 
 
 * ### ***Pause***
@@ -306,7 +317,8 @@ If you want to suspend fetching from a set of topic-partitions, you can issue th
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.pause
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.pause" target="_blank">Pause Command</a>
 
 
 * ### ***Resume***
@@ -326,8 +338,8 @@ If you want to resume fetching from a set of previously paused topic-partitions,
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.resume
-
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.resume" target="_blank">Resume Command</a>
 
 
 * ### ***Seek***
@@ -346,7 +358,8 @@ If you want to seek on specifically topic-partion, you can issue the following c
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.seek
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.seek" target="_blank">Seek Command</a>
 
 
 * ### ***Beginning Offsets***
@@ -366,7 +379,8 @@ If you want to get the initial offsets for the specified set of topic-partitions
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.beginning_offsets
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.beginning_offsets" target="_blank">Beginning Offsets Command</a>
 
 
 * ### ***End Offsets***
@@ -386,4 +400,5 @@ If you want to get the end offsets for the specified set of topic-partitions, yo
     }
 }
 ```
-More details on this command here: https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.end_offsets
+More details on this command here: 
+<a href="https://kafka-python.readthedocs.io/en/master/apidoc/KafkaConsumer.html#kafka.KafkaConsumer.end_offsets" target="_blank">End Offsets Command</a>
