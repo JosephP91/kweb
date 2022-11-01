@@ -1,50 +1,27 @@
 from __future__ import annotations
 
-import abc
 import base64
-import json
-import os
 from enum import Enum
 from typing import TYPE_CHECKING
-from tornado.ioloop import IOLoop
 
 from kafka import KafkaConsumer, OffsetAndMetadata
+from tornado.ioloop import IOLoop
 
 if TYPE_CHECKING:
     from ..context import ConsumerContext
 
 from ..command import AbstractCommand
-from ..command.decorator import consumer_created, consumer_not_created
 from ..command.exception import *
-from .exception import NoSuchSchemaException
+from .decorator import *
 from ..utils import KafkaUtils, Response
 
 
-class ConsumerCommand(AbstractCommand, abc.ABC):
-    def __init__(self, cmd_name: str, context: ConsumerContext):
-        super().__init__(cmd_name)
-        self._context = context
-
-    @property
-    def ctx(self) -> ConsumerContext:
-        return self._context
-
-    def _get_schema(self) -> dict:
-        cur_abs_path = os.path.abspath(os.path.dirname(__file__))
-        full_file_path = os.path.join(cur_abs_path, "../../schema/consumer.json")
-        with open(full_file_path) as json_file_stream:
-            try:
-                return json.load(json_file_stream)[self.cmd_name]
-            except KeyError:
-                raise NoSuchSchemaException(self.cmd_name)
-
-
-class CreateConsumerCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("create_consumer", context)
+class CreateConsumerCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("create_consumer", ctx)
 
     @consumer_not_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         self.ctx.consumer = KafkaConsumer(
             **parameters,
             api_version=(2, 3, 0),
@@ -53,124 +30,124 @@ class CreateConsumerCommand(ConsumerCommand):
         return {"message": "Consumer successfully created!"}
 
 
-class SubscribeCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("subscribe", context)
+class SubscribeCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("subscribe", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         consumer_topics = parameters["topics"]
         self.ctx.consumer.subscribe(topics=consumer_topics)
         return {"message": "Subscription started!"}
 
 
-class UnsubscribeCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("unsubscribe", context)
+class UnsubscribeCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("unsubscribe", ctx)
 
-    def validation_enabled(self) -> bool:
-        return False 
+    def should_validate(self) -> bool:
+        return False
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         self.ctx.consumer.unsubscribe()
         return {"message": "Unsubscribed from topic/partitions"}
 
 
-class TopicsCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("topics", context)
+class TopicsCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("topics", ctx)
 
-    def validation_enabled(self) -> bool:
+    def should_validate(self) -> bool:
         return False
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         topics = self.ctx.consumer.topics()
         return {"message": "Topics retrieved", "topics": list(topics)}
 
 
-class SubscriptionsCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("subscriptions", context)
+class SubscriptionsCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("subscriptions", ctx)
 
-    def validation_enabled(self) -> bool:
+    def should_validate(self) -> bool:
         return False
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         subs = self.ctx.consumer.subscription()
         return {"message": "Subscriptions retrieved", "subscriptions": list(subs)}
 
 
-class SeekToEndCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("seek_to_end", context)
+class SeekToEndCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("seek_to_end", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.seek_to_end(*topic_parts)
         return {"message": "Seeked to end successfully!"}
 
 
-class SeekToBeginningCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("seek_to_beginning", context)
+class SeekToBeginningCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("seek_to_beginning", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
-        topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"]) 
+    def _execute(self, parameters: dict) -> dict:
+        topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.seek_to_end(*topic_parts)
         return {"message": "Seeked to beginning successfully!"}
 
 
-class AssignCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("assign", context)
+class AssignCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("assign", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.assign(topic_parts)
         return {"message": "Assigned successfully!"}
 
 
-class AssignmentCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("assignment", context)
+class AssignmentCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("assignment", ctx)
 
-    def validation_enabled(self):
+    def should_validate(self):
         return False
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         assignment = self.ctx.consumer.assignment()
         return {"message": "Assignment retrieved!", "assignment": list(assignment)}
 
 
-class BootstrapConnectedCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("bootstrap_connected", context)
+class BootstrapConnectedCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("bootstrap_connected", ctx)
 
-    def validation_enabled(self):
+    def should_validate(self):
         return False
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         status = self.ctx.consumer.bootstrap_connected()
         return {"message": "OK", "status": status}
 
 
-class CommitAsyncCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("commit_async", context)
+class CommitAsyncCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("commit_async", ctx)
 
-    def validation_enabled(self):
+    def should_validate(self):
         return True
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic-offset-metadata"])
         self.ctx.consumer.commit_async(tp_om, lambda offset, response: self._callback(offset, response))
         return {"message": "Committing ..."}
@@ -183,29 +160,29 @@ class CommitAsyncCommand(ConsumerCommand):
             data = {"message": "Committed sucessfully!", "data": data, "response": response}
             response_data = Response.success(self.cmd_name, self.ctx, **data)
 
-        IOLoop.spawn_callback(self.ctx.io_loop, self.ctx.on_consumer_data, response_data)
+        IOLoop.spawn_callback(self.ctx.io_loop, self.ctx.on_actor_data, response_data)
 
 
-class CommitCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("commit", context)
+class CommitCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("commit", ctx)
 
-    def validation_enabled(self):
+    def should_validate(self):
         return True
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic-offset-metadata"])
         self.ctx.consumer.commit(tp_om)
         return {"message": "Committed!"}
 
 
-class CommittedCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("committed", context)
+class CommittedCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("committed", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         metadata = parameters["metadata"] if "metadata" in parameters else False
         topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
 
@@ -215,65 +192,65 @@ class CommittedCommand(ConsumerCommand):
         return {"message": "Fetched committed offsets", "last_committed_offset": last_committed_offset}
 
 
-class PartitionsForTopic(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("partitions_for_topic", context)
+class PartitionsForTopic(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("partitions_for_topic", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         partitions = self.ctx.consumer.partitions_for_topic(parameters["topic"])
         return {"message": "Retrieved partitions", "partitions": list(partitions)}
 
 
-class PositionCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("position", context)
+class PositionCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("position", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
         offset = self.ctx.consumer.position(topic_partition)
         return {"message": "Retrieved position", "offset": offset}
 
 
-class HighwaterCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("highwater", context)
+class HighwaterCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("highwater", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
         offset = self.ctx.consumer.highwater(topic_partition)
         return {"message": "Retrieved highwater offset", "offset": offset}
 
 
-class PauseCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("pause", context)
+class PauseCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("pause", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.pause(*topic_parts)
         return {"message": "Paused successfully!"}
 
 
-class PausedCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("paused", context)
+class PausedCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("paused", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         paused_tp = self.ctx.consumer.paused()
         return {"message": "Retrieved paused topic partitions", "topic_partitions": paused_tp}
 
 
-class ResumeCommand(ConsumerCommand):
-    def __init__(self, context: ConsumerContext):
-        super().__init__("resume", context)
+class ResumeCommand(AbstractCommand):
+    def __init__(self, ctx: ConsumerContext):
+        super().__init__("resume", ctx)
 
     @consumer_created
-    def _execute_command(self, parameters: dict) -> dict:
+    def _execute(self, parameters: dict) -> dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.resume(*topic_parts)
         return {"message": "Resumed successfully!"}

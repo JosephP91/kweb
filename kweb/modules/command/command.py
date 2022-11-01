@@ -3,46 +3,41 @@ from __future__ import annotations
 import abc
 from typing import TYPE_CHECKING
 
-from jsonschema import validate
-
 if TYPE_CHECKING:
-    from ..context import Context
+    from ..context import ActorContext
 
 from ..utils import Response
 
 
 class AbstractCommand(abc.ABC):
-    def __init__(self, cmd_name: str):
+    def __init__(self, cmd_name: str, ctx: ActorContext):
         self._cmd_name = cmd_name
+        self._ctx = ctx
 
     @property
     def cmd_name(self):
         return self._cmd_name
 
     @property
-    @abc.abstractmethod
-    def ctx(self) -> Context:
-        raise NotImplementedError()
+    def ctx(self):
+        return self._ctx
 
     def execute(self, parameters: dict) -> dict:
         try:
-            if self.validation_enabled():
-                validate(instance=parameters, schema=self._get_schema())
-            output = self._execute_command(parameters)
+            if self.should_validate():
+                self.ctx.command_validator.validate(self.cmd_name, parameters)
+
+            output = self._execute(parameters)
             return Response.success(self.cmd_name, self.ctx, **output)
 
         except Exception as e:
             return Response.cmd_error(self.cmd_name, self.ctx, e)
 
-    def validation_enabled(self) -> bool:
+    def should_validate(self) -> bool:
         return True
 
     @abc.abstractmethod
-    def _execute_command(self, parameter: dict) -> dict:
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def _get_schema(self) -> dict:
+    def _execute(self, parameter: dict) -> dict:
         raise NotImplementedError()
 
     def __str__(self):

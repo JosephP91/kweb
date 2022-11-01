@@ -3,6 +3,11 @@ class ParserException(Exception):
     pass
 
 
+class UnsupportedParserException(Exception):
+    def __init__(self, parser_name: str):
+        super().__init__("Unsupported parser type {}".format(parser_name))
+
+
 class UnsupportedCommandException(Exception):
     def __init__(self, command):
         super().__init__("Unsupported command {}".format(command))
@@ -20,14 +25,4 @@ class CommandQueueFullException(Exception):
 class CommandQueueEmptyException(Exception):
     def __init__(self):
         super().__init__("No more command to process!")
-
-
-class ConsumerAlreadyCreatedException(Exception):
-    def __init__(self):
-        super().__init__("Consumer already created!")
-
-
-class ConsumerNotCreatedException(Exception):
-    def __init__(self):
-        super().__init__("No consumer created! Please create one!")
 

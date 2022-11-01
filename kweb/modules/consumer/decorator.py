@@ -1,4 +1,4 @@
-from .exception import *
+from .exception import ConsumerAlreadyCreatedException, ConsumerNotCreatedException
 
 
 def consumer_not_created(function):

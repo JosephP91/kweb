@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from json import dumps
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 from uuid import uuid4
 
 from tornado.ioloop import IOLoop
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 from tornado.websocket import WebSocketHandler
 
 from .consumer import AsyncConsumer
+from .validation import CommandParamsJsonValidator
 from .command import CommandFactory
 from ..command import QueuedCommand, CommandQueue, OutputQueue
 from ..context import ConsumerContext
@@ -26,14 +27,15 @@ class ConsumerWebSocketHandler(WebSocketHandler):
         self._async_consumer = None
 
         self._ctx = ConsumerContext()
-        self._ctx.client_id = self.id
-        self._ctx.io_loop = IOLoop.current()
         self._ctx.logger = app_context.logger
         self._ctx.config = app_context.config
+        self._ctx.client_id = self.id
+        self._ctx.io_loop = IOLoop.current()
         self._ctx.cmd_queue = CommandQueue()
         self._ctx.out_queue = OutputQueue()
-        self._ctx.on_consumer_data = self._on_consumer_data
-        self._ctx.on_consumer_error = self._on_consumer_error
+        self._ctx.on_actor_data = self._on_actor_data
+        self._ctx.on_actor_error = self._on_actor_error
+        self._ctx.command_validator = CommandParamsJsonValidator()
 
     @property
     def id(self) -> str:
@@ -54,21 +56,19 @@ class ConsumerWebSocketHandler(WebSocketHandler):
 
     def on_message(self, message: Union[str, bytes]):
         try:
-            message = self._parser.cleanup(message)
             parsed_cmd = self._parser.parse(message)
-
             cmd_instance = CommandFactory.get_instance(parsed_cmd.cmd_name, self.ctx)
+
             self.ctx.cmd_queue.put(QueuedCommand(cmd_instance, parsed_cmd.params))
             cmd_output = self.ctx.out_queue.pop()
-
             self.write_message(cmd_output)
 
         except Exception as e:
             self.write_message(dumps(Response.error(self.ctx, e)))
 
-    def _on_consumer_data(self, data):
+    def _on_actor_data(self, data):
         self.write_message(json.dumps(data))
 
-    def _on_consumer_error(self, e: Exception):
-        self.write_message(dumps(Response.error(self.ctx, e)))
+    def _on_actor_error(self, e: Exception):
+        self.write_message(Response.error(self.ctx, e))
 

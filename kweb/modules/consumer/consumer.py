@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from logging import Logger
 from typing import TYPE_CHECKING, Callable
 
 from tornado.ioloop import IOLoop
@@ -45,9 +46,9 @@ class AsyncConsumer:
                     records = self.ctx.consumer.poll(timeout_ms=100)
                     if len(records) > 0:
                         records = KafkaUtils.consumer_records_to_list(records)
-                        self._spawn_ioloop_callback(self.ctx.on_consumer_data, records)
+                        self._spawn_ioloop_callback(self.ctx.on_actor_data, records)
                 except Exception as e:
-                    self._spawn_ioloop_callback(self.ctx.on_consumer_error, e)
+                    self._spawn_ioloop_callback(self.ctx.on_actor_error, e)
 
         self.logger.info("[{}] - Stopping consumer".format(self.ctx.client_id))
         if self.ctx.consumer is not None:

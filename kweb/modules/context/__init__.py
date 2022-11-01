@@ -1,2 +1,2 @@
-from .context import Context, ConsumerContext, ApplicationContext
+from .context import Context, ConsumerContext, ApplicationContext, ActorContext
 

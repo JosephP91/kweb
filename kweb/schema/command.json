@@ -1,0 +1,10 @@
+{
+	"command_name": {
+		"type": "string",
+		"minLength": 1
+	},
+	"parameters": {
+		"type": "object"
+	},
+	"required": ["command_name", "parameters"]
+}

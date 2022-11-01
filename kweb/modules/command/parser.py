@@ -6,9 +6,9 @@ from json import loads, JSONDecodeError
 from typing import TYPE_CHECKING
 
 from collections import namedtuple
-from jsonschema import validate
 
-from .exception import ParserException
+from .validation import IValidator, CommandJsonValidator
+from .exception import ParserException, UnsupportedParserException
 
 if TYPE_CHECKING:
     from munch import DefaultMunch
@@ -17,44 +17,44 @@ if TYPE_CHECKING:
 ParsedCommand = namedtuple("ParsedCommand", ["cmd_name", "params"])
 
 
-class ICommandParser(abc.ABC):
-    def cleanup(self, command_str: str) -> str:
-        return command_str.replace("\n", "").strip()
+class AbstractCommandParser(abc.ABC):
+    def __init__(self, validator: IValidator):
+        self._validator = validator
+
+    def parse(self, command: str) -> ParsedCommand:
+        command = command.replace("\n", "").strip()
+
+        if self._validator is not None:
+            self._validator.validate(command)
+
+        parsed = self._parse(command)
+        return ParsedCommand(parsed["command_name"], parsed["parameters"])
 
     @abc.abstractmethod
-    def parse(self, command_str: str) -> ParsedCommand:
+    def _parse(self, command: str) -> dict:
         raise NotImplementedError()
 
 
-class JsonCommandParser(ICommandParser):
-    def parse(self, command_str: str) -> ParsedCommand:
-        schema = {
-                "command_name": "string",
-                "parameters": "object",
-                "required": ["command_name", "parameters"]
-                }
+class JsonCommandParser(AbstractCommandParser):
+    def __init__(self):
+        super().__init__(CommandJsonValidator())
 
+    def _parse(self, command: str) -> dict:
         try:
-            json_cmd = loads(command_str)
-            validate(instance=json_cmd, schema=schema)
-            return ParsedCommand(json_cmd["command_name"], json_cmd["parameters"])
-
-        except Exception as e:
-            raise ParserException(str(e))
+            return loads(command)
+        except JSONDecodeError as e:
+            raise ParserException("Malformed json command: {}".format(str(e)))
 
 
 class ParserType(Enum):
-    JSON = "JSON"
+    JSON = JsonCommandParser
 
 
 class CommandParserFactory:
     @staticmethod
-    def get_instance(config: DefaultMunch) -> ICommandParser:
+    def get_instance(config: DefaultMunch) -> AbstractCommandParser:
         selected_parser = config.command.parser.type
         try:
-            parser_name = ParserType[selected_parser]
+            return ParserType[selected_parser.upper()].value()
         except KeyError:
-            raise ValueError("Unsupported parser type {}".format(selected_parser))
-
-        if parser_name == ParserType.JSON:
-            return JsonCommandParser()
+            raise UnsupportedParserException(selected_parser)

@@ -11,4 +11,4 @@ local:
         backupCount: 3
     command:
         parser:
-            type: "JSON"
+            type: "json"
