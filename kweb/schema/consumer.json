@@ -93,7 +93,6 @@
 		}
 	},
 
-
 	"assign": {
 		"type": "object",
 		"properties": {
