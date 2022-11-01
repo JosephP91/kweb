@@ -15,7 +15,7 @@ from tornado.websocket import WebSocketHandler
 from .consumer import AsyncConsumer
 from .validation import CommandParamsJsonValidator
 from .command import CommandFactory
-from ..command import QueuedCommand, CommandQueue, OutputQueue
+from ..command import QueuedCommand, CommandQueue
 from ..context import ConsumerContext
 from ..utils import Response
 
@@ -32,7 +32,6 @@ class ConsumerWebSocketHandler(WebSocketHandler):
         self._ctx.client_id = self.id
         self._ctx.io_loop = IOLoop.current()
         self._ctx.cmd_queue = CommandQueue()
-        self._ctx.out_queue = OutputQueue()
         self._ctx.on_actor_data = self._on_actor_data
         self._ctx.on_actor_error = self._on_actor_error
         self._ctx.command_validator = CommandParamsJsonValidator()
@@ -58,10 +57,7 @@ class ConsumerWebSocketHandler(WebSocketHandler):
         try:
             parsed_cmd = self._parser.parse(message)
             cmd_instance = CommandFactory.get_instance(parsed_cmd.cmd_name, self.ctx)
-
             self.ctx.cmd_queue.put(QueuedCommand(cmd_instance, parsed_cmd.params))
-            cmd_output = self.ctx.out_queue.pop()
-            self.write_message(cmd_output)
 
         except Exception as e:
             self.write_message(dumps(Response.error(self.ctx, e)))

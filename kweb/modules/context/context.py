@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from munch import DefaultMunch
     from kafka import KafkaConsumer
 
-    from ..command import CommandQueue, OutputQueue, AbstractCommandParser, IValidator
+    from ..command import CommandQueue, AbstractCommandParser, IValidator
 
 
 class Context:
@@ -61,7 +61,6 @@ class ActorContext(Context):
     def __init__(self):
         super().__init__()
         self._cmd_queue = None
-        self._out_queue = None
         self._io_loop = None
         self._on_actor_data = None
         self._on_actor_error = None
@@ -70,10 +69,6 @@ class ActorContext(Context):
     @property
     def cmd_queue(self) -> CommandQueue:
         return self._cmd_queue
-
-    @property
-    def out_queue(self) -> OutputQueue:
-        return self._out_queue
 
     @property
     def io_loop(self) -> IOLoop:
@@ -94,10 +89,6 @@ class ActorContext(Context):
     @cmd_queue.setter
     def cmd_queue(self, cmd_queue: CommandQueue):
         self._cmd_queue = cmd_queue
-
-    @out_queue.setter
-    def out_queue(self, out_queue: OutputQueue):
-        self._out_queue = out_queue
 
     @io_loop.setter
     def io_loop(self, io_loop: IOLoop):

@@ -42,16 +42,3 @@ class CommandQueue:
 	def __len__(self) -> int:
 		return self._queue.qsize()
 
-
-class OutputQueue:
-	def __init__(self, maxsize=1):
-		self._queue = Queue(maxsize=maxsize)
-
-	def put(self, output: dict):
-		self._queue.put(output, block=True)
-
-	def pop(self) -> dict:
-		return self._queue.get(block=True)
-
-	def __len__(self) -> int:
-		return self._queue.qsize()

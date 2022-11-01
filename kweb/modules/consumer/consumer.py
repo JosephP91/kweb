@@ -37,7 +37,7 @@ class AsyncConsumer:
             try:
                 queued_cmd = self.ctx.cmd_queue.pop(block=True, timeout=1)
                 cmd_output = queued_cmd.command.execute(queued_cmd.parameters)
-                self.ctx.out_queue.put(cmd_output)
+                self._spawn_ioloop_callback(self.ctx.on_actor_data, cmd_output)
 
             except CommandQueueEmptyException:
                 if self.ctx.consumer is None:
