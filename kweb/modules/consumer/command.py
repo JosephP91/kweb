@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from ..context import ConsumerContext
 
 from ..command import AbstractCommand
-from ..command.exception import *
+from .exception import UnsupportedCommandException
 from .decorator import *
 from ..utils import KafkaUtils, Response
 
