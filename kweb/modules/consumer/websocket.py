@@ -10,7 +10,7 @@ from tornado.ioloop import IOLoop
 if TYPE_CHECKING:
     from ..context import ApplicationContext
 
-from tornado.websocket import WebSocketHandler
+from tornado.websocket import WebSocketHandler, WebSocketClosedError
 
 from .consumer import AsyncConsumer
 from .validation import CommandParamsJsonValidator
@@ -60,11 +60,17 @@ class ConsumerWebSocketHandler(WebSocketHandler):
             self.ctx.cmd_queue.put(QueuedCommand(cmd_instance, parsed_cmd.params))
 
         except Exception as e:
-            self.write_message(dumps(Response.error(self.ctx, e)))
+            self._safe_write_message(dumps(Response.error(self.ctx, e)))
 
     def _on_actor_data(self, data):
-        self.write_message(json.dumps(data))
+        self._safe_write_message(json.dumps(data))
 
     def _on_actor_error(self, e: Exception):
-        self.write_message(Response.error(self.ctx, e))
+        self._safe_write_message(Response.error(self.ctx, e))
+
+    def _safe_write_message(self, data):
+        try:
+            self.write_message(data)
+        except WebSocketClosedError as e:
+            self.ctx.logger.error("[{}] - Socket closed. Cannot write".format(self.id))
 

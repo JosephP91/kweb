@@ -4,7 +4,7 @@ import base64
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from kafka import KafkaConsumer, OffsetAndMetadata
+from kafka import KafkaConsumer, OffsetAndMetadata, ConsumerRebalanceListener
 from tornado.ioloop import IOLoop
 
 if TYPE_CHECKING:
@@ -30,15 +30,27 @@ class CreateConsumerCommand(AbstractCommand):
         return {"message": "Consumer successfully created!"}
 
 
-class SubscribeCommand(AbstractCommand):
+class SubscribeCommand(AbstractCommand, ConsumerRebalanceListener):
     def __init__(self, ctx: ConsumerContext):
         super().__init__("subscribe", ctx)
 
     @consumer_created
     def _execute(self, parameters: dict) -> dict:
         consumer_topics = parameters["topics"]
-        self.ctx.consumer.subscribe(topics=consumer_topics)
+        self.ctx.consumer.subscribe(topics=consumer_topics, listener=self)
         return {"message": "Subscription started!"}
+
+    def on_partitions_assigned(self, assigned):
+        topic_partitions = KafkaUtils.from_topic_partitions(assigned)
+        data = {"message": "Topic/Partitions assigned!", "assigned": topic_partitions}
+        response_data = Response.success(self.cmd_name, self.ctx, **data)
+        IOLoop.spawn_callback(self.ctx.io_loop, self.ctx.on_actor_data, response_data)
+
+    def on_partitions_revoked(self, revoked):
+        topic_partitions = KafkaUtils.from_topic_partitions(revoked)
+        data = {"message": "Topic/Partition revoked!", "revoked": topic_partitions}
+        response_data = Response.success(self.cmd_name, self.ctx, **data)
+        IOLoop.spawn_callback(self.ctx.io_loop, self.ctx.on_actor_data, response_data)
 
 
 class UnsubscribeCommand(AbstractCommand):

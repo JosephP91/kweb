@@ -42,6 +42,10 @@ class KafkaUtils:
         return tp_om
 
     @staticmethod
+    def from_topic_partitions(topic_partitions: list) -> list:
+        return [topic_partition._asdict() for topic_partition in topic_partitions]
+
+    @staticmethod
     def to_topic_partition(topic_partition: dict) -> TopicPartition:
         return TopicPartition(topic_partition["topic"], topic_partition["partition"])
 
