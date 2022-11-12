@@ -1,19 +1,9 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from ..actor import AsyncActor
 from ..command import CommandQueueEmptyException
 from ..utils import KafkaUtils
 
-if TYPE_CHECKING:
-    from ..context import ConsumerContext
-
 
 class AsyncConsumer(AsyncActor):
-    def __init__(self, ctx: ConsumerContext):
-        super().__init__(ctx)
-
     def _callback(self):
         self.logger.info("[{}] - Starting consumer.".format(self.ctx.client_id))
         while not self._should_stop:

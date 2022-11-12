@@ -1,18 +1,8 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from ..actor import AsyncActor
 from ..command import CommandQueueEmptyException
 
-if TYPE_CHECKING:
-    from ..context import ProducerContext
-
 
 class AsyncProducer(AsyncActor):
-    def __init__(self, ctx: ProducerContext):
-        super().__init__(ctx)
-
     def _callback(self):
         self.logger.info("[{}] - Starting producer.".format(self.ctx.client_id))
         while not self._should_stop:
