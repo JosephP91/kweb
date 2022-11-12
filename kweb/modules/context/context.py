@@ -7,7 +7,7 @@ from tornado.ioloop import IOLoop
 if TYPE_CHECKING:
     from logging import Logger
     from munch import DefaultMunch
-    from kafka import KafkaConsumer
+    from kafka import KafkaConsumer, KafkaProducer
 
     from ..command import CommandQueue, AbstractCommandParser, IValidator
 
@@ -119,3 +119,17 @@ class ConsumerContext(ActorContext):
     @consumer.setter
     def consumer(self, consumer: KafkaConsumer):
         self._consumer = consumer
+
+
+class ProducerContext(ActorContext):
+    def __init__(self):
+        super().__init__()
+        self._producer = None
+
+    @property
+    def producer(self) -> KafkaProducer:
+        return self._producer
+
+    @producer.setter
+    def producer(self, producer: KafkaProducer):
+        self._producer = producer

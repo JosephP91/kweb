@@ -3,10 +3,10 @@ from __future__ import annotations
 import abc
 from typing import TYPE_CHECKING, Dict
 
+from ..utils import Response
+
 if TYPE_CHECKING:
     from ..context import ActorContext
-
-from ..utils import Response
 
 
 class AbstractCommand(abc.ABC):
@@ -37,7 +37,7 @@ class AbstractCommand(abc.ABC):
         return True
 
     @abc.abstractmethod
-    def _execute(self, parameter: Dict) -> Dict:
+    def _execute(self, parameters: Dict) -> Dict:
         raise NotImplementedError()
 
     def __str__(self):

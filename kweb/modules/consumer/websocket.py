@@ -1,75 +1,36 @@
 from __future__ import annotations
 
-import json
-from json import dumps
-from typing import TYPE_CHECKING, Union
-from uuid import uuid4
+from typing import TYPE_CHECKING
 
-from tornado.ioloop import IOLoop
+from .command import CommandFactory
+from .consumer import AsyncConsumer
+from ..actor import ActorWebSocketHandler
+from ..command import ConsumerCommandParamJsonValidator
+from ..context import ConsumerContext
 
 if TYPE_CHECKING:
     from ..context import ApplicationContext
 
-from tornado.websocket import WebSocketHandler, WebSocketClosedError
 
-from .consumer import AsyncConsumer
-from .validation import CommandParamsJsonValidator
-from .command import CommandFactory
-from ..command import QueuedCommand, CommandQueue
-from ..context import ConsumerContext
-from ..utils import Response
-
-
-class ConsumerWebSocketHandler(WebSocketHandler):
-    def initialize(self, app_context: ApplicationContext):
-        self._id = uuid4()
-        self._parser = app_context.parser 
+class ConsumerWebSocketHandler(ActorWebSocketHandler):
+    def initialize(self, app_ctx: ApplicationContext):
+        super().initialize(app_ctx)
         self._async_consumer = None
 
-        self._ctx = ConsumerContext()
-        self._ctx.logger = app_context.logger
-        self._ctx.config = app_context.config
-        self._ctx.client_id = self.id
-        self._ctx.io_loop = IOLoop.current()
-        self._ctx.cmd_queue = CommandQueue()
-        self._ctx.on_actor_data = self._on_actor_data
-        self._ctx.on_actor_error = self._on_actor_error
-        self._ctx.command_validator = CommandParamsJsonValidator()
+    def get_context(self):
+        return ConsumerContext()
 
-    @property
-    def id(self) -> str:
-        return str(self._id)
+    def _get_command_parser(self):
+        return ConsumerCommandParamJsonValidator()
 
-    @property
-    def ctx(self) -> ConsumerContext:
-        return self._ctx
+    def _get_command_instance(self, cmd_name: str):
+        return CommandFactory.get_instance(cmd_name, self.ctx)
 
     def open(self):
-        self.ctx.logger.info("[{}] - Opened connection.".format(self.id))
+        self.ctx.logger.info("[{}] - Consumer connection opened.".format(self.id))
         self._async_consumer = AsyncConsumer(self.ctx)
         self._async_consumer.start()
 
     def on_close(self):
-        self.ctx.logger.info("[{}] - Connection closed.".format(self.id))
+        self.ctx.logger.info("[{}] - Consumer connection closed.".format(self.id))
         self._async_consumer.stop()
-
-    def on_message(self, message: Union[str, bytes]):
-        try:
-            parsed_cmd = self._parser.parse(message)
-            cmd_instance = CommandFactory.get_instance(parsed_cmd.cmd_name, self.ctx)
-            self.ctx.cmd_queue.put(QueuedCommand(cmd_instance, parsed_cmd.params))
-
-        except Exception as e:
-            self._safe_write_message(dumps(Response.error(self.ctx, e)))
-
-    def _on_actor_data(self, data):
-        self._safe_write_message(json.dumps(data))
-
-    def _on_actor_error(self, e: Exception):
-        self._safe_write_message(Response.error(self.ctx, e))
-
-    def _safe_write_message(self, data):
-        try:
-            self.write_message(data)
-        except WebSocketClosedError as e:
-            self.ctx.logger.error("[{}] - Socket closed. Cannot write".format(self.id))

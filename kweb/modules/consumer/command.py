@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING, Dict
 from kafka import KafkaConsumer, OffsetAndMetadata, ConsumerRebalanceListener
 from tornado.ioloop import IOLoop
 
-if TYPE_CHECKING:
-    from ..context import ConsumerContext
-
 from ..command import AbstractCommand
-from .exception import UnsupportedCommandException
+from ..actor import UnsupportedCommandException
 from .decorator import *
 from ..utils import KafkaUtils, Response
+
+if TYPE_CHECKING:
+    from ..context import ConsumerContext
 
 
 class CreateConsumerCommand(AbstractCommand):
@@ -330,8 +330,8 @@ class CommandName(Enum):
 
 class CommandFactory:
     @staticmethod
-    def get_instance(cmd_name: str, context: ConsumerContext) -> AbstractCommand:
+    def get_instance(cmd_name: str, ctx: ConsumerContext) -> AbstractCommand:
         try:
-            return CommandName[cmd_name.upper()].value(context)
+            return CommandName[cmd_name.upper()].value(ctx)
         except KeyError:
             raise UnsupportedCommandException(cmd_name)

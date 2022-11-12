@@ -8,10 +8,6 @@ class UnsupportedParserException(Exception):
         super().__init__("Unsupported parser type {}".format(parser_name))
 
 
-class CommandExecutionException(Exception):
-    pass
-
-
 class CommandQueueFullException(Exception):
     def __init__(self):
         super().__init__("Cannot accept more commands right now!")
@@ -20,3 +16,8 @@ class CommandQueueFullException(Exception):
 class CommandQueueEmptyException(Exception):
     def __init__(self):
         super().__init__("No more command to process!")
+
+
+class NoSuchSchemaException(Exception):
+    def __init__(self, cmd_name: str):
+        super().__init__("No schema specified for command {}".format(cmd_name))
