@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from ..context import Context
@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 class Response:
     @staticmethod
-    def success(cmd_name: str, ctx: Context, **payload) -> dict:
+    def success(cmd_name: str, ctx: Context, **payload) -> Dict:
         ctx.logger.info("[{}] - Executed '{}'".format(ctx.client_id, cmd_name))
         return {
             "command_name": cmd_name,
@@ -32,4 +32,3 @@ class Response:
             "client_id": ctx.client_id,
             "reason": str(reason)
         }
-

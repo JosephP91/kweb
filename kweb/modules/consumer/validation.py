@@ -1,6 +1,7 @@
 import os
 
 from json import load
+from typing import Dict
 
 from jsonschema import validate
 
@@ -15,9 +16,8 @@ class CommandParamsJsonValidator(IValidator):
         with open(file_path) as file_stream:
             self._schema = load(file_stream)
 
-    def validate(self, command, parameters: dict = None):
+    def validate(self, command, parameters: Dict = None):
         try:
             validate(instance=parameters, schema=self._schema[command])
         except KeyError:
             raise NoSuchSchemaException(command)
-

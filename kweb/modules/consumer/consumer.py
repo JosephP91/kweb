@@ -57,4 +57,3 @@ class AsyncConsumer:
 
     def _spawn_ioloop_callback(self, callback: Callable, data):
         IOLoop.spawn_callback(self.ctx.io_loop, callback, data)
-

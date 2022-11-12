@@ -15,4 +15,3 @@ def consumer_created(function):
             raise ConsumerNotCreatedException()
         return function(self, *args, **kwargs)
     return _consumer_created
-

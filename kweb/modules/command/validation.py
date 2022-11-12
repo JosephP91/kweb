@@ -2,13 +2,14 @@ import abc
 import os
 
 from json import load
+from typing import Dict
 
 from jsonschema import validate
 
 
 class IValidator(abc.ABC):
     @abc.abstractmethod
-    def validate(self, command, parameters: dict = None):
+    def validate(self, command, parameters: Dict = None):
         raise NotImplementedError()
 
 
@@ -19,6 +20,5 @@ class CommandJsonValidator(IValidator):
         with open(file_path) as file_stream:
             self._schema = load(file_stream)
 
-    def validate(self, command, parameters: dict = None):
+    def validate(self, command, parameters: Dict = None):
         validate(instance=command, schema=self._schema)
-

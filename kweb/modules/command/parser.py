@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 from enum import Enum
 from json import loads, JSONDecodeError
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from collections import namedtuple
 
@@ -31,7 +31,7 @@ class AbstractCommandParser(abc.ABC):
         return ParsedCommand(parsed["command_name"], parsed["parameters"])
 
     @abc.abstractmethod
-    def _parse(self, command: str) -> dict:
+    def _parse(self, command: str) -> Dict:
         raise NotImplementedError()
 
 
@@ -39,7 +39,7 @@ class JsonCommandParser(AbstractCommandParser):
     def __init__(self):
         super().__init__(CommandJsonValidator())
 
-    def _parse(self, command: str) -> dict:
+    def _parse(self, command: str) -> Dict:
         try:
             return loads(command)
         except JSONDecodeError as e:

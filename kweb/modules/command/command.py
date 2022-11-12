@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from ..context import ActorContext
@@ -22,7 +22,7 @@ class AbstractCommand(abc.ABC):
     def ctx(self):
         return self._ctx
 
-    def execute(self, parameters: dict) -> dict:
+    def execute(self, parameters: dict) -> Dict:
         try:
             if self.should_validate():
                 self.ctx.command_validator.validate(self.cmd_name, parameters)
@@ -37,9 +37,8 @@ class AbstractCommand(abc.ABC):
         return True
 
     @abc.abstractmethod
-    def _execute(self, parameter: dict) -> dict:
+    def _execute(self, parameter: Dict) -> Dict:
         raise NotImplementedError()
 
     def __str__(self):
         return self.cmd_name
-

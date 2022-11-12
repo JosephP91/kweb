@@ -1,26 +1,10 @@
-from __future__ import annotations
-
+from collections import namedtuple
 from queue import Queue, Full, Empty
-from typing import TYPE_CHECKING
 
 from .exception import CommandQueueFullException, CommandQueueEmptyException
 
-if TYPE_CHECKING:
-    from .command import AbstractCommand
 
-
-class QueuedCommand:
-    def __init__(self, command: AbstractCommand, parameters: dict):
-        self._command = command
-        self._parameters = parameters
-
-    @property
-    def command(self) -> AbstractCommand:
-        return self._command
-
-    @property
-    def parameters(self) -> dict:
-        return self._parameters
+QueuedCommand = namedtuple("QueuedCommand", ["command", "parameters"])
 
 
 class CommandQueue:
@@ -41,4 +25,3 @@ class CommandQueue:
 
     def __len__(self) -> int:
         return self._queue.qsize()
-

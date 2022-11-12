@@ -73,4 +73,3 @@ class ConsumerWebSocketHandler(WebSocketHandler):
             self.write_message(data)
         except WebSocketClosedError as e:
             self.ctx.logger.error("[{}] - Socket closed. Cannot write".format(self.id))
-

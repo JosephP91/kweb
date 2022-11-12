@@ -20,4 +20,3 @@ class CommandQueueFullException(Exception):
 class CommandQueueEmptyException(Exception):
     def __init__(self):
         super().__init__("No more command to process!")
-

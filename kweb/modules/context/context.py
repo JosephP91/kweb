@@ -119,4 +119,3 @@ class ConsumerContext(ActorContext):
     @consumer.setter
     def consumer(self, consumer: KafkaConsumer):
         self._consumer = consumer
-

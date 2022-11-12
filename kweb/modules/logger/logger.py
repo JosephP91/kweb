@@ -6,11 +6,13 @@ from logging import Logger
 
 from munch import DefaultMunch
 
+from .exception import UnsupportedLoggerTypeException
+
 
 class AbstractLoggerFactory(abc.ABC):
 	@abc.abstractmethod
 	def get_logger(self, config: DefaultMunch) -> Logger:
-		raise NotImplementedError("This method has not been implemented")
+		raise NotImplementedError()
 
 
 class ScreenLoggerFactory(AbstractLoggerFactory):
@@ -37,4 +39,4 @@ class LoggerFactory:
 		try:
 			return Loggers[config.logger.type.upper()].value().get_logger(config)
 		except KeyError:
-			raise RuntimeError("Logger type {} is not supported".format(config.logger.type))
+			raise UnsupportedLoggerTypeException(config.logger.type)

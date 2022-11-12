@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import base64
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from kafka import KafkaConsumer, OffsetAndMetadata, ConsumerRebalanceListener
 from tornado.ioloop import IOLoop
@@ -21,7 +21,7 @@ class CreateConsumerCommand(AbstractCommand):
         super().__init__("create_consumer", ctx)
 
     @consumer_not_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         self.ctx.consumer = KafkaConsumer(
             **parameters,
             api_version=(2, 3, 0),
@@ -35,7 +35,7 @@ class SubscribeCommand(AbstractCommand, ConsumerRebalanceListener):
         super().__init__("subscribe", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         consumer_topics = parameters["topics"]
         self.ctx.consumer.subscribe(topics=consumer_topics, listener=self)
         return {"message": "Subscription started!"}
@@ -61,7 +61,7 @@ class UnsubscribeCommand(AbstractCommand):
         return False
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         self.ctx.consumer.unsubscribe()
         return {"message": "Unsubscribed from topic/partitions"}
 
@@ -74,7 +74,7 @@ class TopicsCommand(AbstractCommand):
         return False
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topics = self.ctx.consumer.topics()
         return {"message": "Topics retrieved", "topics": list(topics)}
 
@@ -87,7 +87,7 @@ class SubscriptionsCommand(AbstractCommand):
         return False
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         subs = self.ctx.consumer.subscription()
         return {"message": "Subscriptions retrieved", "subscriptions": list(subs)}
 
@@ -97,7 +97,7 @@ class SeekToEndCommand(AbstractCommand):
         super().__init__("seek_to_end", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.seek_to_end(*topic_parts)
         return {"message": "Seeked to end successfully!"}
@@ -108,7 +108,7 @@ class SeekToBeginningCommand(AbstractCommand):
         super().__init__("seek_to_beginning", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.seek_to_end(*topic_parts)
         return {"message": "Seeked to beginning successfully!"}
@@ -119,7 +119,7 @@ class AssignCommand(AbstractCommand):
         super().__init__("assign", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.assign(topic_parts)
         return {"message": "Assigned successfully!"}
@@ -133,7 +133,7 @@ class AssignmentCommand(AbstractCommand):
         return False
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         assignment = self.ctx.consumer.assignment()
         return {"message": "Assignment retrieved!", "assignment": list(assignment)}
 
@@ -146,7 +146,7 @@ class BootstrapConnectedCommand(AbstractCommand):
         return False
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         status = self.ctx.consumer.bootstrap_connected()
         return {"message": "OK", "status": status}
 
@@ -159,7 +159,7 @@ class CommitAsyncCommand(AbstractCommand):
         return True
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic-offset-metadata"])
         self.ctx.consumer.commit_async(tp_om, lambda offset, response: self._callback(offset, response))
         return {"message": "Committing ..."}
@@ -183,7 +183,7 @@ class CommitCommand(AbstractCommand):
         return True
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         tp_om = KafkaUtils.to_topic_partition_offset_metadata(parameters["topic-offset-metadata"])
         self.ctx.consumer.commit(tp_om)
         return {"message": "Committed!"}
@@ -194,7 +194,7 @@ class CommittedCommand(AbstractCommand):
         super().__init__("committed", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         metadata = parameters["metadata"] if "metadata" in parameters else False
         topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
 
@@ -209,7 +209,7 @@ class PartitionsForTopic(AbstractCommand):
         super().__init__("partitions_for_topic", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         partitions = self.ctx.consumer.partitions_for_topic(parameters["topic"])
         return {"message": "Retrieved partitions", "partitions": list(partitions)}
 
@@ -219,7 +219,7 @@ class PositionCommand(AbstractCommand):
         super().__init__("position", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
         offset = self.ctx.consumer.position(topic_partition)
         return {"message": "Retrieved position", "offset": offset}
@@ -230,7 +230,7 @@ class HighwaterCommand(AbstractCommand):
         super().__init__("highwater", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
         offset = self.ctx.consumer.highwater(topic_partition)
         return {"message": "Retrieved highwater offset", "offset": offset}
@@ -241,7 +241,7 @@ class PauseCommand(AbstractCommand):
         super().__init__("pause", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.pause(*topic_parts)
         return {"message": "Paused successfully!"}
@@ -252,7 +252,7 @@ class PausedCommand(AbstractCommand):
         super().__init__("paused", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         paused_tp = self.ctx.consumer.paused()
         return {"message": "Retrieved paused topic partitions", "topic_partitions": paused_tp}
 
@@ -262,7 +262,7 @@ class ResumeCommand(AbstractCommand):
         super().__init__("resume", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_parts = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         self.ctx.consumer.resume(*topic_parts)
         return {"message": "Resumed successfully!"}
@@ -273,7 +273,7 @@ class SeekCommand(AbstractCommand):
         super().__init__("seek", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_partition = KafkaUtils.to_topic_partition(parameters["topic-partition"])
         self.ctx.consumer.seek(topic_partition, parameters["offset"])
         return {"message": "Seeked successfully!"}
@@ -284,7 +284,7 @@ class BeginningOffsetsCommand(AbstractCommand):
         super().__init__("beginning_offsets", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_partitions = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         offset_tp = self.ctx.consumer.beginning_offsets(topic_partitions)
         offset_tp = KafkaUtils.from_topic_partition_offset(offset_tp)
@@ -296,7 +296,7 @@ class EndOffsetsCommand(AbstractCommand):
         super().__init__("end_offsets", ctx)
 
     @consumer_created
-    def _execute(self, parameters: dict) -> dict:
+    def _execute(self, parameters: Dict) -> Dict:
         topic_partitions = KafkaUtils.to_topic_partitions(parameters["topic-partitions"])
         offset_tp = self.ctx.consumer.end_offsets(topic_partitions)
         offset_tp = KafkaUtils.from_topic_partition_offset(offset_tp)
@@ -335,4 +335,3 @@ class CommandFactory:
             return CommandName[cmd_name.upper()].value(context)
         except KeyError:
             raise UnsupportedCommandException(cmd_name)
-
