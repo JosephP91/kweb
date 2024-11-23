@@ -4,7 +4,7 @@ import base64
 from enum import Enum
 from typing import TYPE_CHECKING, Dict
 
-from kafka import KafkaConsumer, OffsetAndMetadata, ConsumerRebalanceListener
+from kafka import KafkaConsumer, ConsumerRebalanceListener, OffsetAndMetadata
 from tornado.ioloop import IOLoop
 
 from ..command import AbstractCommand
