@@ -1,5 +1,5 @@
 asyncio==3.4.3
-tornado==6.4.2
+tornado==6.5.1
 munch==4.0.0
 pyyaml==6.0.2
 jsonschema==4.23.0
