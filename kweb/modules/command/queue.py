@@ -3,7 +3,6 @@ from queue import Queue, Full, Empty
 
 from .exception import CommandQueueFullException, CommandQueueEmptyException
 
-
 QueuedCommand = namedtuple("QueuedCommand", ["command", "parameters"])
 
 

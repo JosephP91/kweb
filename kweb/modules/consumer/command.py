@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Dict
 from kafka import KafkaConsumer, ConsumerRebalanceListener, OffsetAndMetadata
 from tornado.ioloop import IOLoop
 
-from ..command import AbstractCommand
-from ..actor import UnsupportedCommandException
 from .decorator import *
+from ..actor import UnsupportedCommandException
+from ..command import AbstractCommand
 from ..utils import KafkaUtils, Response
 
 if TYPE_CHECKING:

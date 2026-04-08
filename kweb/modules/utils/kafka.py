@@ -30,7 +30,7 @@ class KafkaUtils:
         for topic_part_offset_meta in topic_partition_offset_metadata:
             key = topic_part_offset_meta["key"]
             value = topic_part_offset_meta["value"]
-            
+
             topic_partition = KafkaUtils.to_topic_partition(key)
             offset_metadata = OffsetAndMetadata(value["offset"], value["metadata"])
             tp_om[topic_partition] = offset_metadata

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from ..context import ActorContext
 
 
-class AsyncActor:
+class AsyncActor(abc.ABC):
     def __init__(self, ctx: ActorContext):
         self._should_stop = False
         self._ctx = ctx

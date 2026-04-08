@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import abc
+from collections import namedtuple
 from enum import Enum
 from json import loads, JSONDecodeError
 from typing import TYPE_CHECKING, Dict
 
-from collections import namedtuple
-
-from .validation import IValidator, CommandJsonValidator
 from .exception import ParserException, UnsupportedParserException
+from .validation import IValidator, CommandJsonValidator
 
 if TYPE_CHECKING:
     from munch import DefaultMunch

@@ -20,8 +20,8 @@ class Response:
     def cmd_error(cmd_name: str, ctx: Context, reason: Exception):
         ctx.logger.error("[{}] - Error '{}': {}".format(ctx.client_id, cmd_name, str(reason)))
         return {
-            "command_name": cmd_name, 
-            "client_id": ctx.client_id, 
+            "command_name": cmd_name,
+            "client_id": ctx.client_id,
             "reason": str(reason)
         }
 
